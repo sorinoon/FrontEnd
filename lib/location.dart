@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:webview_flutter/webview_flutter.dart';
 import 'ProtectorSettingsProvider.dart';
 import 'userList.dart';
 
@@ -12,10 +13,27 @@ class LocationScreen extends StatefulWidget {
 
 class _LocationScreenState extends State<LocationScreen> {
   bool isExpanded = false; // 박스 확장 여부를 관리하는 상태
+  late final WebViewController _webViewController;
 
   List<Map<String, String>> locationList = [
-    {'start': '서울 성북구 동선동 1234', 'end': '한성대학교 창의관 2층 209호'},
+    {'start': '서울특별시 성북구 동소문로 지하102 (성신여대입구역)', 'end': '서울특별시 성북구 삼선교로16길 116 (한성대학교)'},
   ];
+  // List<Map<String, String>> locationList = [
+  //   {'start': '37.5822, 127.0020', 'end': '37.5885, 127.0065'}, // 위도, 경도
+  // ];
+
+  @override
+  void initState() {
+    super.initState();
+
+    // WebViewController 초기화
+    final PlatformWebViewControllerCreationParams params =
+    const PlatformWebViewControllerCreationParams();
+    _webViewController = WebViewController.fromPlatformCreationParams(params)
+      ..setJavaScriptMode(JavaScriptMode.unrestricted)
+      ..loadFlutterAsset('assets/kakaomap.html'); // HTML 파일 로드
+  }
+
   @override
   Widget build(BuildContext context) {
     final protectorSettings = Provider.of<ProtectorSettingsProvider>(context);
@@ -53,12 +71,7 @@ class _LocationScreenState extends State<LocationScreen> {
           // 카카오 지도 표시
           Positioned.fill(
             top: isExpanded ? 210 : 170,
-            child: Container(
-              color: Colors.grey[300], // 지도 부분은 추후 카카오맵 위젯으로 대체
-              child: Center(
-                child: Text('카카오맵 API로 지도 표시'),
-              ),
-            ),
+            child: WebViewWidget(controller: _webViewController),
           ),
 
           // 위치 정보 박스
