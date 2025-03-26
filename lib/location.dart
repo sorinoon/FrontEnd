@@ -80,7 +80,7 @@ class _LocationScreenState extends State<LocationScreen> {
                   borderRadius: BorderRadius.circular(10),
                   boxShadow: [
                     BoxShadow(
-                      color: Color(0xff2f2f2f).withOpacity(0.5),
+                      color: Color(0xff2f2f2f).withValues(alpha: 0.5),
                       spreadRadius: 2,
                       blurRadius: 7,
                     ),
