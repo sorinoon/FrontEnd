@@ -1,18 +1,24 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:provider/provider.dart';
+import 'ProtectorSettingsProvider.dart';
 import 'home_protector.dart'; // HomeScreen 임포트
 
+
 class ProtectorSettingScreen extends StatefulWidget {
+  const ProtectorSettingScreen({super.key});
+
   @override
   _ProtectorSettingScreenState createState() => _ProtectorSettingScreenState();
 }
 
 class _ProtectorSettingScreenState extends State<ProtectorSettingScreen> {
   bool toggleValue1 = false;
-  bool toggleValue2 = false;
 
   @override
   Widget build(BuildContext context) {
+    final protectorSettings = Provider.of<ProtectorSettingsProvider>(context);
+
     return Scaffold(
       body: Stack(
         children: [
@@ -52,7 +58,7 @@ class _ProtectorSettingScreenState extends State<ProtectorSettingScreen> {
               child: Text(
                 '설정',
                 style: TextStyle(
-                  fontSize: 25,
+                  fontSize: 25 + protectorSettings.fontSizeOffset,
                   fontWeight: FontWeight.bold,
                   color: Colors.black,
                 ),
@@ -100,12 +106,10 @@ class _ProtectorSettingScreenState extends State<ProtectorSettingScreen> {
                   title: '글자 크기 키우기',
                   subtitle: '저시력 사용자를 위해 글자 크기를 최대로 키웁니다.',
                   hasToggle: true,
-                  toggleValue: toggleValue2,
+                  toggleValue: protectorSettings.isFontSizeIncreased,
                   onToggleChanged: (value) {
-                    setState(() {
-                      toggleValue2 = value;
-                    });
-                  },
+                    protectorSettings.toggleFontSize(value);
+                  }
                 ),
                 Divider(
                   color: Color(0xff5B5B5B),
@@ -131,7 +135,8 @@ class SettingItem extends StatelessWidget {
   final ValueChanged<bool>? onToggleChanged;
   final VoidCallback? onTap;
 
-  SettingItem({
+  const SettingItem({
+    super.key,
     required this.title,
     this.subtitle,
     this.rightText,
@@ -143,33 +148,40 @@ class SettingItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final fontSizeOffset = Provider.of<ProtectorSettingsProvider>(context).fontSizeOffset;
+
     return InkWell(
       onTap: hasToggle ? null : onTap,
       child: Container(
         padding: EdgeInsets.symmetric(vertical: 11, horizontal: 15),
         child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            // 제목과 subtitle을 묶어서 표시
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: TextStyle(fontSize: 18),
-                ),
-                if (subtitle != null) // subtitle이 있는 경우
-                  Padding(
-                    padding: EdgeInsets.only(top: 4),
-                    child: Text(
-                      subtitle!,
-                      style: TextStyle(fontSize: 12, color: Color(0xff8F8996)),
-                    ),
+            // 제목과 subtitle을 포함하는 왼쪽 영역
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // 제목 텍스트
+                  Text(
+                    title,
+                    style: TextStyle(fontSize: 20 + fontSizeOffset),
+                    overflow: TextOverflow.visible, // 텍스트가 길어질 경우 줄바꿈
                   ),
-              ],
+                  if (subtitle != null)
+                    Padding(
+                      padding: EdgeInsets.only(top: 4),
+                      child: Text(
+                        subtitle!,
+                        style: TextStyle(fontSize: 14 + fontSizeOffset, color: Color(0xff8F8996)),
+                        overflow: TextOverflow.visible, // 텍스트가 길어질 경우 줄바꿈
+                      ),
+                    ),
+                ],
+              ),
             ),
 
-            // 우측 요소 (토글, 텍스트)
+            // 우측 요소 (토글 또는 텍스트)
             if (hasToggle)
               CupertinoSwitch(
                 value: toggleValue ?? false,
@@ -178,10 +190,13 @@ class SettingItem extends StatelessWidget {
                 inactiveTrackColor: Color(0xffE7E7E8), // 비활성화된 트랙 색상
                 thumbColor: CupertinoColors.white, // 원 색상
               )
-            else if (rightText != null) // 토글이 없어도 rightText가 있으면 우측 정렬
-              Text(
-                rightText!,
-                style: TextStyle(fontSize: 14, color: Color(0xff8F8996)),
+            else if (rightText != null)
+              Flexible(
+                child: Text(
+                  rightText!,
+                  style: TextStyle(fontSize: 14 + fontSizeOffset, color: Color(0xff8F8996)),
+                  overflow: TextOverflow.visible, // 텍스트가 길어질 경우 줄바꿈
+                ),
               ),
           ],
         ),

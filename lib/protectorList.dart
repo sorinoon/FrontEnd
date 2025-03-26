@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:sorinoon/protectorList_edit.dart';
 import 'setting_user.dart';
-import 'protectorList_edit.dart';
+import 'package:provider/provider.dart';
+import 'UserSettingsProvider.dart';
 
 class ProtectorListScreen extends StatefulWidget {
+  const ProtectorListScreen({super.key});
+
   @override
   _ProtectorListScreenState createState() => _ProtectorListScreenState();
 }
@@ -53,6 +56,8 @@ class _ProtectorListScreenState extends State<ProtectorListScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final fontSizeOffset = Provider.of<UserSettingsProvider>(context).fontSizeOffset;
+
     return Scaffold(
       body: Stack(
         children: [
@@ -91,7 +96,7 @@ class _ProtectorListScreenState extends State<ProtectorListScreen> {
               child: Text(
                 '보호자 목록',
                 style: TextStyle(
-                  fontSize: 25,
+                  fontSize: 25 + fontSizeOffset,
                   fontWeight: FontWeight.bold,
                   color: Colors.black,
                 ),
@@ -108,7 +113,7 @@ class _ProtectorListScreenState extends State<ProtectorListScreen> {
               child: Text(
                 '긴급 연락처 순서 설정',
                 style: TextStyle(
-                  fontSize: 15,
+                  fontSize: 15 + fontSizeOffset,
                   color: Color(0xff848484),
                 ),
               ),
@@ -127,8 +132,9 @@ class _ProtectorListScreenState extends State<ProtectorListScreen> {
                       if (index == protectorNames.length) {
                         // 마지막 빈 DragTarget
                         return DragTarget<int>(
-                          onAccept: (receivedIndex) {
-                            onItemMoved(receivedIndex, protectorNames.length);
+                          onAcceptWithDetails: (DragTargetDetails<int> receivedDetails) {
+                            // DragTargetDetails 객체에서 data를 추출하여 사용
+                            onItemMoved(receivedDetails.data, protectorNames.length);
                           },
                           builder: (context, candidateData, rejectedData) {
                             return Container(
@@ -178,9 +184,9 @@ class _ProtectorListScreenState extends State<ProtectorListScreen> {
                                 });
                               },
                               child: DragTarget<int>(
-                                onAccept: (receivedIndex) {
-                                  // 항목을 놓았을 때 순서 변경
-                                  onItemMoved(receivedIndex, index);
+                                onAcceptWithDetails: (DragTargetDetails<int> receivedDetails) {
+                                  // DragTargetDetails 객체에서 data를 추출하여 사용
+                                  onItemMoved(receivedDetails.data, index);
                                 },
                                 builder: (context, candidateData, rejectedData) {
                                   return buildListItem(index);
@@ -200,6 +206,25 @@ class _ProtectorListScreenState extends State<ProtectorListScreen> {
                   ),
                 ),
               ],
+            ),
+          ),
+          Positioned(
+            bottom: 30,
+            left: 20,
+            child: ElevatedButton(
+              onPressed: () {
+                // 음성인식 기능
+              },
+              style: ElevatedButton.styleFrom(
+                shape: CircleBorder(),
+                padding: EdgeInsets.all(12),
+                backgroundColor: Color(0xFFF8CB38),
+              ),
+              child: Icon(
+                Icons.settings_voice,
+                color: Colors.black,
+                size: 38,
+              ),
             ),
           ),
           Positioned(
@@ -234,6 +259,8 @@ class _ProtectorListScreenState extends State<ProtectorListScreen> {
 
   // 항목 레이아웃을 정의하는 공통 메서드
   Widget buildListItem(int index) {
+    final fontSizeOffset = Provider.of<UserSettingsProvider>(context).fontSizeOffset;
+
     return Container(
       margin: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
       child: Row(
@@ -249,21 +276,21 @@ class _ProtectorListScreenState extends State<ProtectorListScreen> {
           SizedBox(width: 15),
 
           // 이름
-          Container(
-            width: 90,
+          SizedBox(
+            width: 100,
             child: Text(
               protectorNames[index],
-              style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+              style: TextStyle(fontSize: 22 + fontSizeOffset, fontWeight: FontWeight.bold),
             ),
           ),
 
           // 연락처
           Container(
-            width: 150,
+            width: 140,
             alignment: Alignment.centerLeft,
             child: Text(
               contactNotes[index],
-              style: TextStyle(fontSize: 16, color: Color(0xff4E4E4E)),
+              style: TextStyle(fontSize: 16 + fontSizeOffset, color: Color(0xff4E4E4E)),
             ),
           ),
           SizedBox(width: 38),

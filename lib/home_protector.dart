@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'ProtectorSettingsProvider.dart';
 import 'login_protector.dart';
 import 'userList.dart';
 import 'setting_protector.dart';
@@ -6,8 +8,12 @@ import 'setting_user.dart';
 import 'qr.dart';
 
 class HomeScreen extends StatelessWidget {
+  const HomeScreen({super.key});
+
   @override
   Widget build(BuildContext context) {
+    final protectorSettings = Provider.of<ProtectorSettingsProvider>(context);
+
     return Scaffold(
       body: Stack(
         children: [
@@ -37,7 +43,7 @@ class HomeScreen extends StatelessWidget {
 
           // 상단 버튼
           Positioned(
-            top: 100,
+            top: 120,
             left: 0,
             right: 0,
             child: Center(
@@ -53,8 +59,8 @@ class HomeScreen extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Container(
-                      width: 170,
-                      height: 170,
+                      width: 170 + protectorSettings.fontSizeOffset * 4,
+                      height: 170 + protectorSettings.fontSizeOffset * 4,
                       decoration: BoxDecoration(
                         color: Colors.white,
                         borderRadius: BorderRadius.circular(20),
@@ -69,8 +75,8 @@ class HomeScreen extends StatelessWidget {
                           crossAxisAlignment: CrossAxisAlignment.center, // 중앙 정렬
                           children: [
                             Container(
-                              width: 90,
-                              height: 90,
+                              width: 90 + protectorSettings.fontSizeOffset * 2,
+                              height: 90 + protectorSettings.fontSizeOffset * 2,
                               decoration: BoxDecoration(
                                 color: Color(0xff80C5A4),
                                 shape: BoxShape.circle,
@@ -78,7 +84,7 @@ class HomeScreen extends StatelessWidget {
                               child: Icon(
                                 Icons.format_list_bulleted,
                                 color: Colors.white,
-                                size: 55,
+                                size: 55 + protectorSettings.fontSizeOffset / 2,
                               ),
                             ),
                             SizedBox(height: 7),
@@ -86,7 +92,7 @@ class HomeScreen extends StatelessWidget {
                               '사용자 목록',
                               style: TextStyle(
                                 color: Colors.black,
-                                fontSize: 25,
+                                fontSize: 25 + protectorSettings.fontSizeOffset,
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
@@ -101,17 +107,13 @@ class HomeScreen extends StatelessWidget {
           ),
 
           // 중간 버튼
-          Positioned(
-            top: 330,
-            left: 0,
-            right: 0,
-            child: Center(
+          Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Container(
-                    width: 170,
-                    height: 170,
+                    width: 170 + protectorSettings.fontSizeOffset * 4,
+                    height: 170 + protectorSettings.fontSizeOffset * 4,
                     decoration: BoxDecoration(
                       color: Colors.white,
                       borderRadius: BorderRadius.circular(20),
@@ -134,8 +136,8 @@ class HomeScreen extends StatelessWidget {
                           crossAxisAlignment: CrossAxisAlignment.center, // 중앙 정렬
                           children: [
                             Container(
-                              width: 90,
-                              height: 90,
+                              width: 90 + protectorSettings.fontSizeOffset * 2,
+                              height: 90 + protectorSettings.fontSizeOffset * 2,
                               decoration: BoxDecoration(
                                 color: Color(0xff80C5A4),
                                 shape: BoxShape.circle,
@@ -143,7 +145,7 @@ class HomeScreen extends StatelessWidget {
                               child: Icon(
                                 Icons.qr_code_2,
                                 color: Colors.white,
-                                size: 55,
+                                size: 55 + protectorSettings.fontSizeOffset / 2,
                               ),
                             ),
                             SizedBox(height: 7),
@@ -151,7 +153,7 @@ class HomeScreen extends StatelessWidget {
                               'QR 보기',
                               style: TextStyle(
                                 color: Colors.black,
-                                fontSize: 25,
+                                fontSize: 25 + protectorSettings.fontSizeOffset,
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
@@ -163,11 +165,10 @@ class HomeScreen extends StatelessWidget {
                 ],
               ),
             ),
-          ),
 
           // 하단 버튼
           Positioned(
-            top: 560,
+            bottom: 120,
             left: 0,
             right: 0,
             child: Center(
@@ -175,8 +176,8 @@ class HomeScreen extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Container(
-                    width: 170,
-                    height: 170,
+                    width: 170 + protectorSettings.fontSizeOffset * 4,
+                    height: 170 + protectorSettings.fontSizeOffset * 4,
                     decoration: BoxDecoration(
                       color: Colors.white,
                       borderRadius: BorderRadius.circular(20),
@@ -190,7 +191,7 @@ class HomeScreen extends StatelessWidget {
                         onPressed: () {
                           Navigator.push(
                             context,
-                            MaterialPageRoute(builder: (context) => ProtectorSettingScreen()),
+                            MaterialPageRoute(builder: (context) => ProtectorSettingScreen()),  //User Protector
                           );
                           print("설정 버튼");
                         },
@@ -199,8 +200,8 @@ class HomeScreen extends StatelessWidget {
                           crossAxisAlignment: CrossAxisAlignment.center, // 중앙 정렬
                           children: [
                             Container(
-                              width: 90,
-                              height: 90,
+                              width: 90 + protectorSettings.fontSizeOffset * 2,
+                              height: 90 + protectorSettings.fontSizeOffset * 2,
                               decoration: BoxDecoration(
                                 color: Color(0xff80C5A4),
                                 shape: BoxShape.circle,
@@ -208,7 +209,7 @@ class HomeScreen extends StatelessWidget {
                               child: Icon(
                                 Icons.settings,
                                 color: Colors.white,
-                                size: 55,
+                                size: 55 + protectorSettings.fontSizeOffset / 2,
                               ),
                             ),
                             SizedBox(height: 7),
@@ -216,7 +217,7 @@ class HomeScreen extends StatelessWidget {
                               '설정',
                               style: TextStyle(
                                 color: Colors.black,
-                                fontSize: 25,
+                                fontSize: 25 + protectorSettings.fontSizeOffset,
                                 fontWeight: FontWeight.bold,
                               ),
                             ),

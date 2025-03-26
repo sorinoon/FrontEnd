@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:sorinoon/protectorList.dart';
+import 'package:provider/provider.dart';
+import 'UserSettingsProvider.dart';
 
 class ProtectorEditScreen extends StatefulWidget {
+  const ProtectorEditScreen({super.key});
+
   @override
   _ProtectorEditScreenState createState() => _ProtectorEditScreenState();
 }
@@ -38,6 +42,8 @@ class _ProtectorEditScreenState extends State<ProtectorEditScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final fontSizeOffset = Provider.of<UserSettingsProvider>(context).fontSizeOffset;
+
     return Scaffold(
       body: Stack(
         children: [
@@ -76,7 +82,7 @@ class _ProtectorEditScreenState extends State<ProtectorEditScreen> {
               child: Text(
                 '보호자 목록',
                 style: TextStyle(
-                  fontSize: 25,
+                  fontSize: 25 + fontSizeOffset,
                   fontWeight: FontWeight.bold,
                   color: Colors.black,
                 ),
@@ -92,7 +98,7 @@ class _ProtectorEditScreenState extends State<ProtectorEditScreen> {
               child: Text(
                 '연락처 삭제',
                 style: TextStyle(
-                  fontSize: 15,
+                  fontSize: 15 + fontSizeOffset,
                   color: Color(0xff848484),
                 ),
               ),
@@ -121,6 +127,25 @@ class _ProtectorEditScreenState extends State<ProtectorEditScreen> {
                   ),
                 ),
               ],
+            ),
+          ),
+          Positioned(
+            bottom: 30,
+            left: 20,
+            child: ElevatedButton(
+              onPressed: () {
+                // 음성인식 기능
+              },
+              style: ElevatedButton.styleFrom(
+                shape: CircleBorder(),
+                padding: EdgeInsets.all(12),
+                backgroundColor: Color(0xFFF8CB38),
+              ),
+              child: Icon(
+                Icons.settings_voice,
+                color: Colors.black,
+                size: 38,
+              ),
             ),
           ),
           Positioned(
@@ -154,6 +179,8 @@ class _ProtectorEditScreenState extends State<ProtectorEditScreen> {
   }
 
   Widget buildListItem(int index) {
+    final fontSizeOffset = Provider.of<UserSettingsProvider>(context).fontSizeOffset;
+
     return Container(
       margin: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
       child: Row(
@@ -167,19 +194,19 @@ class _ProtectorEditScreenState extends State<ProtectorEditScreen> {
             ),
           ),
           SizedBox(width: 15),
-          Container(
-            width: 90,
+          SizedBox(
+            width: 100,
             child: Text(
               protectorNames[index],
-              style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+              style: TextStyle(fontSize: 22 + fontSizeOffset, fontWeight: FontWeight.bold),
             ),
           ),
           Container(
-            width: 150,
+            width: 140,
             alignment: Alignment.centerLeft,
             child: Text(
               contactNotes[index],
-              style: TextStyle(fontSize: 16, color: Color(0xff4E4E4E)),
+              style: TextStyle(fontSize: 16 + fontSizeOffset, color: Color(0xff4E4E4E)),
             ),
           ),
           SizedBox(width: 38),
