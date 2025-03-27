@@ -32,6 +32,7 @@ class HomeScreen extends StatelessWidget {
                   context,
                   MaterialPageRoute(builder: (context) => LoginScreen()),
                 );
+                Provider.of<ProtectorSettingsProvider>(context, listen: false).vibrate();
               },
               child: Icon(
                 Icons.arrow_back_ios,
@@ -53,6 +54,7 @@ class HomeScreen extends StatelessWidget {
                     context,
                     MaterialPageRoute(builder: (context) => UserListScreen()),
                   );
+                  Provider.of<ProtectorSettingsProvider>(context, listen: false).vibrate();
                   print("사용자 목록 버튼");
                 },
                 child: Column(
@@ -129,6 +131,7 @@ class HomeScreen extends StatelessWidget {
                             context,
                             MaterialPageRoute(builder: (context) => QRScreen()),
                           );
+                          Provider.of<ProtectorSettingsProvider>(context, listen: false).vibrate();
                           print("QR 버튼");
                         },
                         child: Column(
@@ -191,8 +194,9 @@ class HomeScreen extends StatelessWidget {
                         onPressed: () {
                           Navigator.push(
                             context,
-                            MaterialPageRoute(builder: (context) => ProtectorSettingScreen()),  //User Protector
+                            MaterialPageRoute(builder: (context) => UserSettingScreen()),  //User Protector
                           );
+                          Provider.of<ProtectorSettingsProvider>(context, listen: false).vibrate();
                           print("설정 버튼");
                         },
                         child: Column(

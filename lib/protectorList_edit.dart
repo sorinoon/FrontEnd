@@ -64,6 +64,7 @@ class _ProtectorEditScreenState extends State<ProtectorEditScreen> {
                   context,
                   MaterialPageRoute(builder: (context) => ProtectorListScreen()),
                 );
+                Provider.of<UserSettingsProvider>(context, listen: false).vibrate();
               },
               child: Icon(
                 Icons.arrow_back_ios,
@@ -135,6 +136,7 @@ class _ProtectorEditScreenState extends State<ProtectorEditScreen> {
             child: ElevatedButton(
               onPressed: () {
                 // 음성인식 기능
+                Provider.of<UserSettingsProvider>(context, listen: false).vibrate();
               },
               style: ElevatedButton.styleFrom(
                 shape: CircleBorder(),
@@ -157,6 +159,7 @@ class _ProtectorEditScreenState extends State<ProtectorEditScreen> {
                   context,
                   MaterialPageRoute(builder: (context) => ProtectorListScreen()),
                 );
+                Provider.of<UserSettingsProvider>(context, listen: false).vibrate();
               },
               child: Container(
                 width: 60,
@@ -211,7 +214,10 @@ class _ProtectorEditScreenState extends State<ProtectorEditScreen> {
           ),
           SizedBox(width: 38),
           GestureDetector(
-            onTap: () => deleteItem(index),
+            onTap: () {
+              Provider.of<UserSettingsProvider>(context, listen: false).vibrate();
+              deleteItem(index);
+            },
             child: Icon(
               Icons.delete,
               size: 30,

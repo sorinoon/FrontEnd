@@ -3,6 +3,9 @@ import 'package:flutter/material.dart';
 import 'home_protector.dart';
 import 'package:provider/provider.dart';
 import 'ProtectorSettingsProvider.dart';
+import 'package:kakao_flutter_sdk_user/kakao_flutter_sdk_user.dart';
+import 'package:webview_flutter/webview_flutter.dart';
+import 'package:http/http.dart' as http;
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -13,6 +16,65 @@ class LoginScreen extends StatefulWidget {
 
 class _LoginScreenState extends State<LoginScreen> {
   bool isToggled = false;
+  late final WebViewController _webViewController;
+
+  @override
+  void initState() {
+    super.initState();
+    // WebViewController 초기화
+    _webViewController = WebViewController()
+      ..setJavaScriptMode(JavaScriptMode.unrestricted)
+      ..setNavigationDelegate(
+        NavigationDelegate(
+          onPageStarted: (String url) {
+            // URL 변경 감지
+            if (url.contains("code=")) {
+              final Uri uri = Uri.parse(url);
+              final String? code = uri.queryParameters['code'];
+              if (code != null) {
+                _sendCodeToServer(code);
+              }
+            }
+          },
+        ),
+      );
+  }
+
+  // Spring Boot 서버에 인증 코드 전달
+  Future<void> _sendCodeToServer(String code) async {
+    try {
+      final response = await http.get(
+        Uri.parse('http://<YOUR_SERVER_IP>:8080/callback?code=$code'),   // spring boot 서버 필요
+      );
+
+      if (response.statusCode == 200) {
+        print("로그인 성공! 응답: ${response.body}");
+        // TODO: 로그인 성공 후 사용자 정보 처리 및 화면 이동
+      } else {
+        print("로그인 실패: ${response.statusCode}");
+      }
+    } catch (error) {
+      print("서버 요청 중 오류 발생: $error");
+    }
+  }
+
+  // 카카오 로그인 버튼 클릭 시 WebView로 로그인 페이지 열기
+  void _signInWithKakao() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => Scaffold(
+          appBar: AppBar(
+            title: const Text("카카오 로그인"),
+          ),
+          body: WebViewWidget(
+            controller: _webViewController..loadRequest(Uri.parse('http://<YOUR_SERVER_IP>:8080/login/page')),     // spring boot 서버 필요
+          ),
+        ),
+      ),
+    );
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -83,8 +145,9 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                   ),
                   child: TextButton(
-                    onPressed: () {
-                      print("버튼 1");
+                    onPressed:() {
+                      Provider.of<ProtectorSettingsProvider>(context, listen: false).vibrate();
+                      _signInWithKakao();// 카카오 로그인 버튼 클릭 시 처리,
                     },
                     child: Row(
                       mainAxisAlignment:
@@ -126,7 +189,8 @@ class _LoginScreenState extends State<LoginScreen> {
                         MaterialPageRoute(builder:
                             (context) => HomeScreen()),
                       );
-                      print("버튼 2");
+                      Provider.of<ProtectorSettingsProvider>(context, listen: false).vibrate();
+                      print("둘러보기 버튼");
                     },
                     child:
                     Text(
@@ -157,6 +221,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       setState(() {
                         isToggled = value;
                       });
+                      Provider.of<ProtectorSettingsProvider>(context, listen: false).vibrate();
                     },
                     activeTrackColor: Color(0xff80C5A4), // 활성화된 트랙 색상
                     inactiveTrackColor: Color(0xffF8CB38), // 비활성화된 트랙 색상

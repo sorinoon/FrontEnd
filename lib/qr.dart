@@ -45,6 +45,7 @@ class _QRScreenState extends State<QRScreen> {
                   context,
                   MaterialPageRoute(builder: (context) => HomeScreen()),
                 );
+                Provider.of<ProtectorSettingsProvider>(context, listen: false).vibrate();
               },
               child: Icon(
                 Icons.arrow_back_ios,
@@ -107,6 +108,7 @@ class _QRScreenState extends State<QRScreen> {
                   onTap: () {
                     Clipboard.setData(ClipboardData(text: uniqueCode.replaceAll(" ", "")));
                     showCustomSnackBar(context, "고유 번호가 복사되었습니다.");
+                    Provider.of<ProtectorSettingsProvider>(context, listen: false).vibrate();
                   },
                   child: Icon(
                     Icons.content_copy,
@@ -116,6 +118,7 @@ class _QRScreenState extends State<QRScreen> {
                 ),
                 GestureDetector(
                   onTap: () async {
+                    Provider.of<ProtectorSettingsProvider>(context, listen: false).vibrate();
                     await _shareQRCode();
                   },
                   child: Icon(
@@ -126,6 +129,7 @@ class _QRScreenState extends State<QRScreen> {
                 ),
                 GestureDetector(
                   onTap: () async {
+                    Provider.of<ProtectorSettingsProvider>(context, listen: false).vibrate();
                     await _saveQRCode(context);
                   },
                   child: Image.asset(

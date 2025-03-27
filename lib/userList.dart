@@ -4,7 +4,6 @@ import 'ProtectorSettingsProvider.dart';
 import 'home_protector.dart'; // HomeScreen 임포트
 import 'location.dart';
 
-
 class UserListScreen extends StatefulWidget {
   const UserListScreen({super.key});
 
@@ -53,6 +52,7 @@ class _UserListScreenState extends State<UserListScreen> {
                   context,
                   MaterialPageRoute(builder: (context) => HomeScreen()),
                 );
+                Provider.of<ProtectorSettingsProvider>(context, listen: false).vibrate();
               },
               child: Icon(
                 Icons.arrow_back_ios,
@@ -118,6 +118,7 @@ class _UserListScreenState extends State<UserListScreen> {
                                   ),
                                   GestureDetector(
                                     onTap: () async {
+                                      Provider.of<ProtectorSettingsProvider>(context, listen: false).vibrate();
                                       // 텍스트 입력 다이얼로그
                                       String? updatedNote = await showDialog<String>(
                                         context: context,
@@ -140,6 +141,7 @@ class _UserListScreenState extends State<UserListScreen> {
                                               TextButton(
                                                 onPressed: () {
                                                   Navigator.pop(context);
+                                                  Provider.of<ProtectorSettingsProvider>(context, listen: false).vibrate();
                                                 },
                                                 child: Text(
                                                   '취소',
@@ -149,6 +151,7 @@ class _UserListScreenState extends State<UserListScreen> {
                                               TextButton(
                                                 onPressed: () {
                                                   Navigator.pop(context, controller.text); // 텍스트 입력 후 반환
+                                                  Provider.of<ProtectorSettingsProvider>(context, listen: false).vibrate();
                                                 },
                                                 child: Text(
                                                   '확인',
@@ -200,6 +203,7 @@ class _UserListScreenState extends State<UserListScreen> {
                                       context,
                                       MaterialPageRoute(builder: (context) => LocationScreen()),
                                     );
+                                    Provider.of<ProtectorSettingsProvider>(context, listen: false).vibrate();
                                   },
                                   child: Text(
                                     '위치 보기',

@@ -41,6 +41,7 @@ class _UserSettingScreenState extends State<UserSettingScreen> {
                   context,
                   MaterialPageRoute(builder: (context) => HomeScreen()),
                 );
+                Provider.of<UserSettingsProvider>(context, listen: false).vibrate();
               },
               child: Icon(
                 Icons.arrow_back_ios,
@@ -91,11 +92,10 @@ class _UserSettingScreenState extends State<UserSettingScreen> {
                     title: '저전력 모드',
                     subtitle: '네비게이션 사용 시\n자동으로 저전력 모드로 전환합니다.',
                     hasToggle: true,
-                    toggleValue: toggleValue1,
+                    toggleValue: UserSettings.isLowPowerModeEnabled,
                     onToggleChanged: (value) {
-                      setState(() {
-                        toggleValue1 = value;
-                      });
+                      UserSettings.toggleLowPowerMode(value);
+                      Provider.of<UserSettingsProvider>(context, listen: false).vibrate();
                     },
                   ),
                   Divider(
@@ -106,13 +106,12 @@ class _UserSettingScreenState extends State<UserSettingScreen> {
                   ),
                   SettingItem(
                     title: '진동 모드',
-                    subtitle: '어플리케이션 알림을 진동으로 전환합니다.',
+                    subtitle: '버튼 터치 시 진동 피드백을 제공합니다.',
                     hasToggle: true,
-                    toggleValue: toggleValue2,
+                    toggleValue: UserSettings.isVibrationEnabled,
                     onToggleChanged: (value) {
-                      setState(() {
-                        toggleValue2 = value;
-                      });
+                      UserSettings.toggleVibration(value);
+                      Provider.of<UserSettingsProvider>(context, listen: false).vibrate();
                     },
                   ),
                   Divider(
@@ -128,6 +127,7 @@ class _UserSettingScreenState extends State<UserSettingScreen> {
                     toggleValue: UserSettings.isFontSizeIncreased, // 토글 - 전역 상태 사용
                     onToggleChanged: (value) {
                       UserSettings.toggleFontSize(value); // 전역 상태 업데이트
+                      Provider.of<UserSettingsProvider>(context, listen: false).vibrate();
                     },
                   ),
                   Divider(
@@ -167,6 +167,7 @@ class _UserSettingScreenState extends State<UserSettingScreen> {
                         context,
                         MaterialPageRoute(builder: (context) => RegisterScreen()),
                       );
+                      Provider.of<UserSettingsProvider>(context, listen: false).vibrate();
                     },
                   ),
                   Divider(
@@ -184,6 +185,7 @@ class _UserSettingScreenState extends State<UserSettingScreen> {
                         context,
                         MaterialPageRoute(builder: (context) => ProtectorListScreen()),
                       );
+                      Provider.of<UserSettingsProvider>(context, listen: false).vibrate();
                     },
                   ),
                   Divider(
@@ -202,7 +204,8 @@ class _UserSettingScreenState extends State<UserSettingScreen> {
             left: 20,
             child: ElevatedButton(
               onPressed: () {
-                // 음성인식 기능
+                // 음성인식 기능 추가 필요
+                Provider.of<UserSettingsProvider>(context, listen: false).vibrate();
               },
               style: ElevatedButton.styleFrom(
                 shape: CircleBorder(),

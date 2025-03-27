@@ -5,6 +5,8 @@
     <!-- 위치 권한 (필요 시) -->
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.VIBRATE"/>
+
     <application
         android:label="sorinoon"
         android:name="${applicationName}"
@@ -26,6 +28,7 @@
             <meta-data
               android:name="io.flutter.embedding.android.NormalTheme"
               android:resource="@style/NormalTheme"
+                android:value="31e0f394a6fff7b5d25aaf635b5838cb"
               />
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>

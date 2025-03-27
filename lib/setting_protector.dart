@@ -13,7 +13,7 @@ class ProtectorSettingScreen extends StatefulWidget {
 }
 
 class _ProtectorSettingScreenState extends State<ProtectorSettingScreen> {
-  bool toggleValue1 = false;
+  // bool toggleValue1 = false;
 
   @override
   Widget build(BuildContext context) {
@@ -40,6 +40,7 @@ class _ProtectorSettingScreenState extends State<ProtectorSettingScreen> {
                   context,
                   MaterialPageRoute(builder: (context) => HomeScreen()),
                 );
+                Provider.of<ProtectorSettingsProvider>(context, listen: false).vibrate();
               },
               child: Icon(
                 Icons.arrow_back_ios,
@@ -87,14 +88,19 @@ class _ProtectorSettingScreenState extends State<ProtectorSettingScreen> {
                 ),
                 SettingItem(
                   title: '진동 모드',
-                  subtitle: '어플리케이션 알림을 진동으로 전환합니다.',
+                  subtitle: '버튼 터치 시 진동 피드백을 제공합니다.',
                   hasToggle: true,
-                  toggleValue: toggleValue1,
+                  toggleValue: protectorSettings.isVibrationEnabled,
                   onToggleChanged: (value) {
-                    setState(() {
-                      toggleValue1 = value;
-                    });
+                    protectorSettings.toggleVibration(value);
+                    Provider.of<ProtectorSettingsProvider>(context, listen: false).vibrate();
                   },
+                  // toggleValue: toggleValue1,
+                  // onToggleChanged: (value) {
+                  //   setState(() {
+                  //     toggleValue1 = value;
+                  //   });
+                  // },
                 ),
                 Divider(
                   color: Color(0xff5B5B5B),
@@ -109,6 +115,7 @@ class _ProtectorSettingScreenState extends State<ProtectorSettingScreen> {
                   toggleValue: protectorSettings.isFontSizeIncreased,
                   onToggleChanged: (value) {
                     protectorSettings.toggleFontSize(value);
+                    Provider.of<ProtectorSettingsProvider>(context, listen: false).vibrate();
                   }
                 ),
                 Divider(

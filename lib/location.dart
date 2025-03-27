@@ -32,6 +32,7 @@ class _LocationScreenState extends State<LocationScreen> {
     _webViewController = WebViewController.fromPlatformCreationParams(params)
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
       ..loadFlutterAsset('assets/kakaomap.html'); // HTML 파일 로드
+      //..loadRequest(Uri.parse('http://localhost:8080/map')); // Spring Boot 서버 URL
   }
 
   @override
@@ -59,6 +60,7 @@ class _LocationScreenState extends State<LocationScreen> {
                   context,
                   MaterialPageRoute(builder: (context) => UserListScreen()),
                 );
+                Provider.of<ProtectorSettingsProvider>(context, listen: false).vibrate();
               },
               child: Icon(
                 Icons.arrow_back_ios,
@@ -84,6 +86,7 @@ class _LocationScreenState extends State<LocationScreen> {
                 setState(() {
                   isExpanded = !isExpanded; // 클릭 시 박스 확장/축소 상태 변경
                 });
+                Provider.of<ProtectorSettingsProvider>(context, listen: false).vibrate();
               },
               child: AnimatedContainer(
                 duration: Duration(milliseconds: 300), // 애니메이션 효과 추가

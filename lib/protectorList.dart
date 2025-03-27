@@ -78,6 +78,7 @@ class _ProtectorListScreenState extends State<ProtectorListScreen> {
                   context,
                   MaterialPageRoute(builder: (context) => UserSettingScreen()),
                 );
+                Provider.of<UserSettingsProvider>(context, listen: false).vibrate();
               },
               child: Icon(
                 Icons.arrow_back_ios,
@@ -173,6 +174,7 @@ class _ProtectorListScreenState extends State<ProtectorListScreen> {
                               ),
                               onDragStarted: () {
                                 // 드래그 시작 시 상태 처리
+                                Provider.of<UserSettingsProvider>(context, listen: false).vibrate();
                                 setState(() {
                                   draggingIndex = index;
                                 });
@@ -214,6 +216,7 @@ class _ProtectorListScreenState extends State<ProtectorListScreen> {
             child: ElevatedButton(
               onPressed: () {
                 // 음성인식 기능
+                Provider.of<UserSettingsProvider>(context, listen: false).vibrate();
               },
               style: ElevatedButton.styleFrom(
                 shape: CircleBorder(),
@@ -236,6 +239,7 @@ class _ProtectorListScreenState extends State<ProtectorListScreen> {
                     context,
                     MaterialPageRoute(builder: (context) => ProtectorEditScreen()),
                 );
+                Provider.of<UserSettingsProvider>(context, listen: false).vibrate();
               },
               child: Container(
                 width: 60,
