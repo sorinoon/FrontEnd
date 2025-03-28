@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 import 'ProtectorSettingsProvider.dart';
 import 'userList.dart';
+import 'package:geolocator/geolocator.dart';
 
 class LocationScreen extends StatefulWidget {
   const LocationScreen({super.key});
@@ -14,6 +15,8 @@ class LocationScreen extends StatefulWidget {
 class _LocationScreenState extends State<LocationScreen> {
   bool isExpanded = false; // 박스 확장 여부를 관리하는 상태
   late final WebViewController _webViewController;
+  String? latitude;
+  String? longitude;
 
   List<Map<String, String>> locationList = [
     {'start': '서울특별시 성북구 동소문로 지하102 (성신여대입구역)', 'end': '서울특별시 성북구 삼선교로16길 116 (한성대학교)'},
@@ -25,14 +28,43 @@ class _LocationScreenState extends State<LocationScreen> {
   @override
   void initState() {
     super.initState();
-
     // WebViewController 초기화
-    final PlatformWebViewControllerCreationParams params =
-    const PlatformWebViewControllerCreationParams();
-    _webViewController = WebViewController.fromPlatformCreationParams(params)
+    _webViewController = WebViewController()
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
       ..loadFlutterAsset('assets/kakaomap.html'); // HTML 파일 로드
-      //..loadRequest(Uri.parse('http://localhost:8080/map')); // Spring Boot 서버 URL
+
+    // 현재 위치 가져오기
+    getGeoData();
+  }
+
+  Future<void> getGeoData() async {
+    try {
+      // 권한 확인 및 요청
+      LocationPermission permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+        if (permission == LocationPermission.denied) {
+          throw Exception('위치 권한이 거부되었습니다.');
+        }
+      }
+
+      // 현재 위치 가져오기
+      Position position = await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.high,
+      );
+
+      setState(() {
+        latitude = position.latitude.toString();
+        longitude = position.longitude.toString();
+      });
+
+      // WebView에 JavaScript로 위치 데이터 전달
+      _webViewController.runJavaScript('''
+        updateLocation(${position.latitude}, ${position.longitude});
+      ''');
+    } catch (e) {
+      print('위치 정보를 가져오는 데 실패했습니다: $e');
+    }
   }
 
   @override

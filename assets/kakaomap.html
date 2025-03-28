@@ -16,23 +16,41 @@
 <script>
     var container = document.getElementById('map');
     var options = {
-        center: new kakao.maps.LatLng(33.450701, 126.570667),
+        center: new kakao.maps.LatLng(37.5665, 126.9780), // 초기 중심 위치 (서울)
         level: 3
     };
+
     var map = new kakao.maps.Map(container, options);
+    var imageSrc = "https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/markerStar.png";
 
-    // 마커가 표시될 위치입니다
-    var markerPosition  = new kakao.maps.LatLng(33.450701, 126.570667);
+    function displayMarker(locPosition, message) {
+        var imageSize = new kakao.maps.Size(24, 35);
+        var markerImage = new kakao.maps.MarkerImage(imageSrc, imageSize);
 
-    // 마커를 생성합니다
-    var marker = new kakao.maps.Marker({
-        position: markerPosition
-    });
+        var marker = new kakao.maps.Marker({
+            map: map,
+            position: locPosition,
+            image: markerImage
+        });
 
-    // 마커가 지도 위에 표시되도록 설정합니다
-    marker.setMap(map);
+        var iwContent = message,
+            iwRemoveable = true;
 
+        var infowindow = new kakao.maps.InfoWindow({
+            content: iwContent,
+            removable: iwRemoveable
+        });
 
+        infowindow.open(map, marker);
+        map.setCenter(locPosition);
+    }
+
+    // Flutter에서 호출할 함수 (현재 위치 업데이트)
+    function updateLocation(lat, lon) {
+        var locPosition = new kakao.maps.LatLng(lat, lon);
+        var message = '<div style="padding:5px;">현재 위치</div>';
+        displayMarker(locPosition, message);
+    }
 </script>
 </body>
 </html>
