@@ -19,19 +19,21 @@ class _LocationScreenState extends State<LocationScreen> {
   String? longitude;
 
   List<Map<String, String>> locationList = [
-    {'start': '서울특별시 성북구 동소문로 지하102 (성신여대입구역)', 'end': '서울특별시 성북구 삼선교로16길 116 (한성대학교)'},
+    {
+      'start': '37.5822,127.0020', // 성신여대입구역 좌표
+      'end': '37.5885,127.0065'    // 한성대학교 좌표
+    },
   ];
-  // List<Map<String, String>> locationList = [
-  //   {'start': '37.5822, 127.0020', 'end': '37.5885, 127.0065'}, // 위도, 경도
-  // ];
 
   @override
   void initState() {
     super.initState();
+
     // WebViewController 초기화
     _webViewController = WebViewController()
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
       ..loadFlutterAsset('assets/kakaomap.html'); // HTML 파일 로드
+    //..loadRequest(Uri.parse('http://localhost:8080/map')); // Spring Boot 서버 URL
 
     // 현재 위치 가져오기
     getGeoData();
@@ -39,12 +41,12 @@ class _LocationScreenState extends State<LocationScreen> {
 
   Future<void> getGeoData() async {
     try {
-      // 권한 확인 및 요청
       LocationPermission permission = await Geolocator.checkPermission();
       if (permission == LocationPermission.denied) {
         permission = await Geolocator.requestPermission();
-        if (permission == LocationPermission.denied) {
-          throw Exception('위치 권한이 거부되었습니다.');
+        if (permission != LocationPermission.whileInUse &&
+            permission != LocationPermission.always) {
+          throw Exception('위치 권한 필요');
         }
       }
 
@@ -65,14 +67,27 @@ class _LocationScreenState extends State<LocationScreen> {
     } catch (e) {
       print('위치 정보를 가져오는 데 실패했습니다: $e');
     }
+    _sendRouteCoordinates();
+  }
+
+  void _sendRouteCoordinates() {
+    final start = locationList[0]['start']!.split(',');
+    final end = locationList[0]['end']!.split(',');
+
+    _webViewController.runJavaScript('''
+      updateRoute(
+        ${double.parse(start[0])}, ${double.parse(start[1])},
+        ${double.parse(end[0])}, ${double.parse(end[1])}
+      );
+    ''');
   }
 
   @override
   Widget build(BuildContext context) {
     final protectorSettings = Provider.of<ProtectorSettingsProvider>(context);
 
-    String startLocation = locationList[0]['start']!;
-    String endLocation = locationList[0]['end']!;
+    final start = locationList[0]['start']!;
+    final end = locationList[0]['end']!;
 
     return Scaffold(
       body: Stack(
@@ -142,7 +157,7 @@ class _LocationScreenState extends State<LocationScreen> {
                       children: [
                         Expanded(
                           child: Text(
-                            startLocation,
+                            start,
                             style: TextStyle(
                               fontSize: 17 + protectorSettings.fontSizeOffset,
                             ),
@@ -155,7 +170,7 @@ class _LocationScreenState extends State<LocationScreen> {
                         Icon(Icons.arrow_right_alt, size: 25),
                         Expanded(
                           child: Text(
-                            endLocation,
+                            end,
                             style: TextStyle(
                               fontSize: 17 + protectorSettings.fontSizeOffset,
                             ),

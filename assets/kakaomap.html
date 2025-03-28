@@ -8,49 +8,102 @@
     <style>
         body, html { margin: 0; padding: 0; height: 100%; }
         #map { width: 100%; height: 100%; }
+        #my-location-button {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: #FFFFFF;
+            background-image: url('../assets/images/my_location_icon.png');
+            background-size: 25px 25px;
+            background-position: center;
+            background-repeat: no-repeat;
+            z-index: 1000; /* 지도 위에 표시 */
+        }
     </style>
 </head>
 <body>
 <div id="map"></div>
+<div id="my-location-button" onclick="moveToCurrentLocation()"></div>
 
 <script>
-    var container = document.getElementById('map');
-    var options = {
-        center: new kakao.maps.LatLng(37.5665, 126.9780), // 초기 중심 위치 (서울)
-        level: 3
+    let map;
+    let currentMarker, startMarker, endMarker;
+
+    // 마커 이미지 경로 수정
+    const MARKERS = {
+        current: 'https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/markerStar.png',
+        start: 'https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/marker_red.png',
+        end: 'https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/marker_blue.png'
     };
 
-    var map = new kakao.maps.Map(container, options);
-    var imageSrc = "https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/markerStar.png";
-
-    function displayMarker(locPosition, message) {
-        var imageSize = new kakao.maps.Size(24, 35);
-        var markerImage = new kakao.maps.MarkerImage(imageSrc, imageSize);
-
-        var marker = new kakao.maps.Marker({
-            map: map,
-            position: locPosition,
-            image: markerImage
-        });
-
-        var iwContent = message,
-            iwRemoveable = true;
-
-        var infowindow = new kakao.maps.InfoWindow({
-            content: iwContent,
-            removable: iwRemoveable
-        });
-
-        infowindow.open(map, marker);
-        map.setCenter(locPosition);
+    function initMap() {
+        map = new kakao.maps.Map(
+            document.getElementById('map'),
+            { center: new kakao.maps.LatLng(37.5665, 126.9780), level: 3 }
+        );
     }
 
-    // Flutter에서 호출할 함수 (현재 위치 업데이트)
     function updateLocation(lat, lon) {
-        var locPosition = new kakao.maps.LatLng(lat, lon);
-        var message = '<div style="padding:5px;">현재 위치</div>';
-        displayMarker(locPosition, message);
+        if(currentMarker) currentMarker.setMap(null);
+
+        currentMarker = createMarker(
+            new kakao.maps.LatLng(lat, lon),
+            MARKERS.current,
+            '<div style="padding:5px;color:#4CAF50;">현재 위치</div>'
+        );
     }
+
+    function updateRoute(startLat, startLon, endLat, endLon) {
+        // 기존 마커 제거
+        if(startMarker) startMarker.setMap(null);
+        if(endMarker) endMarker.setMap(null);
+
+        // 새 마커 생성
+        startMarker = createMarker(
+            new kakao.maps.LatLng(startLat, startLon),
+            MARKERS.start,
+            '<div style="padding:5px;color:#E53935;">출발지</div>'
+        );
+
+        endMarker = createMarker(
+            new kakao.maps.LatLng(endLat, endLon),
+            MARKERS.end,
+            '<div style="padding:5px;color:#1E88E5;">도착지</div>'
+        );
+
+        // 지도 영역 조정
+        const bounds = new kakao.maps.LatLngBounds();
+        bounds.extend(startMarker.getPosition());
+        bounds.extend(endMarker.getPosition());
+        map.setBounds(bounds);
+    }
+
+    function createMarker(position, image, content) {
+        const marker = new kakao.maps.Marker({
+            map: map,
+            position: position,
+            image: new kakao.maps.MarkerImage(
+                image,
+                new kakao.maps.Size(24, 35)
+            )
+        });
+
+        new kakao.maps.InfoWindow({ content }).open(map, marker);
+        return marker;
+    }
+
+    function moveToCurrentLocation() {
+        if(currentMarker) {
+            map.panTo(currentMarker.getPosition());
+        } else {
+            alert('현재 위치 정보가 없습니다.');
+        }
+    }
+
+    initMap();
 </script>
 </body>
 </html>

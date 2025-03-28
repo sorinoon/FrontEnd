@@ -66,6 +66,7 @@ flutter:
     - assets/images/goBack_logo.jpg
     - assets/images/download.png
     - assets/images/qr.png
+    - assets/images/my_location_icon.png
     - assets/kakaomap.html
   fonts:
     - family: KoddiUDOnGothic
