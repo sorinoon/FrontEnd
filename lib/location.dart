@@ -52,7 +52,9 @@ class _LocationScreenState extends State<LocationScreen> {
 
       // 현재 위치 가져오기
       Position position = await Geolocator.getCurrentPosition(
-        desiredAccuracy: LocationAccuracy.high,
+          locationSettings: const LocationSettings(
+            accuracy: LocationAccuracy.high,
+          ),
       );
 
       setState(() {
