@@ -3,6 +3,7 @@ import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import '../widgets/globalMicButton.dart';
+import '../widgets/GlobalGoBackButton.dart';
 
 class Page_CameraAnalyze extends StatefulWidget {
   @override
@@ -58,22 +59,7 @@ class _Page_CameraAnalyzeState extends State<Page_CameraAnalyze> {
             },
           ),
 
-          // 커스텀 뒤로가기 버튼 (이미지 사용)
-          Positioned(
-            top: 70,
-            left: 16,
-            child: GestureDetector(
-              onTap: () => Navigator.pop(context),
-              child: Container(
-                width: 30,
-                height: 30,
-                child: Image.asset(
-                  'assets/images/Arrow_back.png',
-                  fit: BoxFit.scaleDown,
-                ),
-              ),
-            ),
-          ),
+          GlobalGoBackButton(),
 
           // 상단 인식 모드 텍스트 (크기 증가)
           Positioned(

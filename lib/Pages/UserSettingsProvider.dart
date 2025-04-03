@@ -27,6 +27,7 @@ class UserSettingsProvider with ChangeNotifier {
   void vibrate() {
     if (_isVibrationEnabled) {
       HapticFeedback.mediumImpact();
+      print('진동 사용자');
     }
   }
 

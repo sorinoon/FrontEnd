@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:webview_flutter/webview_flutter.dart';
-import 'ProtectorSettingsProvider.dart';
-import 'userList.dart';
 import 'package:geolocator/geolocator.dart';
+import '../widgets/GlobalGoBackButton.dart';
+import '../Pages/ProtectorSettingsProvider.dart';
 
 class LocationScreen extends StatefulWidget {
   const LocationScreen({super.key});
@@ -99,25 +99,8 @@ class _LocationScreenState extends State<LocationScreen> {
               color: Color(0xff80C5A4),
             ),
           ),
-          // goBack 버튼
-          Positioned(
-            top: 40,
-            left: 30,
-            child: GestureDetector(
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => UserListScreen()),
-                );
-                Provider.of<ProtectorSettingsProvider>(context, listen: false).vibrate();
-              },
-              child: Icon(
-                Icons.arrow_back_ios,
-                color: Colors.black,
-                size: 30,
-              ),
-            ),
-          ),
+
+          GlobalGoBackButton(),
 
           // 카카오 지도 표시
           Positioned.fill(

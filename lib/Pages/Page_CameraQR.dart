@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
-import '../widgets/globalMicButton.dart'; // 글로벌 마이크 버튼 임포트
+import '../widgets/GlobalMicButton.dart';
+import '../widgets/GlobalGoBackButton.dart';
 
 class CameraQR extends StatefulWidget {
   @override
@@ -37,14 +38,7 @@ class _CameraQRState extends State<CameraQR> {
           ),
 
           // 뒤로가기 버튼
-          Positioned(
-            top: 60,
-            left: 16,
-            child: IconButton(
-              icon: Icon(Icons.arrow_back, color: Colors.white),
-              onPressed: () => Navigator.pop(context),
-            ),
-          ),
+          GlobalGoBackButton(),
 
           // 중앙 텍스트 + 가이드 박스
           Positioned(

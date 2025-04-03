@@ -1,7 +1,11 @@
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:provider/provider.dart';
+import 'package:flutter_screen_wake/flutter_screen_wake.dart';
 import '../widgets/GlobalMicButton.dart';
+import '../widgets/GlobalGoBackButton.dart';
+import '../Pages/UserSettingsProvider.dart';
 
 class PageNavigate extends StatefulWidget {
   const PageNavigate({Key? key}) : super(key: key);
@@ -10,7 +14,7 @@ class PageNavigate extends StatefulWidget {
   State<PageNavigate> createState() => _PageNavigateState();
 }
 
-class _PageNavigateState extends State<PageNavigate> {
+class _PageNavigateState extends State<PageNavigate> with WidgetsBindingObserver {
   CameraController? _cameraController;
   List<CameraDescription>? _cameras;
   bool _isCameraInitialized = false;
@@ -18,6 +22,14 @@ class _PageNavigateState extends State<PageNavigate> {
   @override
   void initState() {
     super.initState();
+
+    WidgetsBinding.instance.addObserver(this);
+
+    final lowPowerProvider = Provider.of<UserSettingsProvider>(context, listen: false);
+    if (lowPowerProvider.isLowPowerModeEnabled) {
+      FlutterScreenWake.setBrightness(0.0); // 저전력 모드 시 화면 밝기 낮춤
+    }
+
     initializeCamera();
   }
 
@@ -48,8 +60,17 @@ class _PageNavigateState extends State<PageNavigate> {
 
   @override
   void dispose() {
+    FlutterScreenWake.setBrightness(1.0); // 카메라 화면 벗어나면 밝기 원래대로
+    WidgetsBinding.instance.removeObserver(this);
     _cameraController?.dispose();
     super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.inactive || state == AppLifecycleState.paused) {
+      FlutterScreenWake.setBrightness(1.0); // 앱이 비활성화되면 밝기 복원
+    }
   }
 
   @override
@@ -64,19 +85,8 @@ class _PageNavigateState extends State<PageNavigate> {
             child: CameraPreview(_cameraController!),
           ),
 
-          // ✅ ⬅️ 뒤로가기 (좌측 상단)
-          SafeArea(
-            child: Align(
-              alignment: Alignment.topLeft,
-              child: Padding(
-                padding: const EdgeInsets.only(left: 8, top: 8),
-                child: IconButton(
-                  icon: const Icon(Icons.arrow_back, color: Colors.white),
-                  onPressed: () => Navigator.pop(context),
-                ),
-              ),
-            ),
-          ),
+          // ✅ ⬅️ 뒤로가기
+          GlobalGoBackButton(),
 
           // ✅ 안내 모드 (중앙 상단)
           SafeArea(
@@ -124,7 +134,6 @@ class _PageNavigateState extends State<PageNavigate> {
               ),
             ),
           ),
-
           // ✅ 글로벌 마이크 버튼 (좌측 하단 유지)
           GlobalMicButton(
             onPressed: () {

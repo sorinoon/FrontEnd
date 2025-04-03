@@ -1,14 +1,16 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:sorinoon/Pages/Page_Navigate.dart';
-import 'package:sorinoon/Pages/Page_UserHome.dart';
-import 'package:sorinoon/Pages/Page_Welcome.dart';
-import '../Pages/home_protector.dart';
 import 'package:provider/provider.dart';
-import 'ProtectorSettingsProvider.dart';
-import 'package:kakao_flutter_sdk_user/kakao_flutter_sdk_user.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 import 'package:http/http.dart' as http;
+import 'package:sorinoon/Pages/Page_Navigate.dart';
+import 'package:kakao_flutter_sdk_user/kakao_flutter_sdk_user.dart';
+import '../Pages/home_protector.dart';
+import '../Pages/Page_UserHome.dart';
+import '../Pages/Page_Welcome.dart';
+import '../Pages/ProtectorSettingsProvider.dart';
+import '../Pages/UserSettingsProvider.dart';
+import '../Pages/LoginModeProvider.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -85,11 +87,24 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     final protectorSettings = Provider.of<ProtectorSettingsProvider>(context);
+    final userSettings = Provider.of<UserSettingsProvider>(context);
+    final loginMode = Provider.of<LoginModeProvider>(context);
+
+    double fontSizeOffset = loginMode.isProtectorMode
+        ? protectorSettings.fontSizeOffset
+        : userSettings.fontSizeOffset;
+
+    void vibrate() {
+      if (loginMode.isProtectorMode) {
+        protectorSettings.vibrate();
+      } else {
+        userSettings.vibrate();
+      }
+    }
 
     return Scaffold(
       body: Stack(
         children: [
-          // 배경
           Positioned.fill(
             child: Image.asset(
               'assets/images/background_image.jpg',
@@ -98,7 +113,7 @@ class _LoginScreenState extends State<LoginScreen> {
           ),
           // 로고 및 이름
           Positioned(
-            top: 230 - protectorSettings.fontSizeOffset * 4,
+            top: 230 - fontSizeOffset * 4,
             left: 0,
             right: 0,
             child: Center(
@@ -109,14 +124,14 @@ class _LoginScreenState extends State<LoginScreen> {
                     width: 120,
                     height: 120,
                     decoration: BoxDecoration(
-                      color: isToggled ? Color(0xff80C5A4) : Color(0xffF8CB38), // 네모 박스 색상
+                      color: loginMode.isProtectorMode ? Color(0xff80C5A4) : Color(0xffF8CB38), // 네모 박스 색상
                       borderRadius: BorderRadius.circular(40),
                     ),
                     child: Center(
                       child: Icon(
                         Icons.image, // 로고 대체
                         color: Colors.white,
-                        size: 40 + protectorSettings.fontSizeOffset,
+                        size: 40 + fontSizeOffset,
                       ),
                     ),
                   ),
@@ -125,9 +140,9 @@ class _LoginScreenState extends State<LoginScreen> {
                   Text(
                     '소리눈',
                     style: TextStyle(
-                      fontSize: 40 + protectorSettings.fontSizeOffset,
+                      fontSize: 40 + fontSizeOffset,
                       fontWeight: FontWeight.bold,
-                      color: isToggled ? Color(0xff80C5A4) : Color(0xffF8CB38),
+                      color: loginMode.isProtectorMode ? Color(0xff80C5A4) : Color(0xffF8CB38),
                     ),
                   ),
                 ],
@@ -138,10 +153,10 @@ class _LoginScreenState extends State<LoginScreen> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                SizedBox(height: 450 - protectorSettings.fontSizeOffset * 5), // 로고와 버튼 간격 조정
+                SizedBox(height: 450 - fontSizeOffset * 5), // 로고와 버튼 간격 조정
                 Container(
-                  width: 307 + protectorSettings.fontSizeOffset * 10,
-                  height: 57 + protectorSettings.fontSizeOffset * 2,
+                  width: 307 + fontSizeOffset * 10,
+                  height: 57 + fontSizeOffset * 2,
                   decoration: BoxDecoration(
                     color: Color(0xFFFFE726),
                     borderRadius: BorderRadius.circular(50),
@@ -152,13 +167,14 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                   child: TextButton(
                     onPressed:() {
-                      final provider = Provider.of<ProtectorSettingsProvider>(context, listen: false);
-                      provider.vibrate();
-
-                      if (isToggled) {
+                      if (loginMode.isProtectorMode) {
+                        final provider = Provider.of<ProtectorSettingsProvider>(context, listen: false);
+                        provider.vibrate();
                         // 보호자용 페이지로 이동
                             _signInWithKakao();// 카카오 로그인 버튼 클릭 시 처리
                       } else {
+                        final provider = Provider.of<UserSettingsProvider>(context, listen: false);
+                        provider.vibrate();
                         // 사용자용 페이지로 이동
                         Navigator.push(
                           context,
@@ -181,7 +197,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           style: TextStyle(
                             color: Color(0xff4D3033),
                             fontWeight: FontWeight.bold,
-                            fontSize: 18 + protectorSettings.fontSizeOffset,
+                            fontSize: 18 + fontSizeOffset,
                           ),
                         ),
                       ],
@@ -190,8 +206,8 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
                 SizedBox(height: 20), // 버튼 간 간격 조정
                 Container(
-                  width: 307 + protectorSettings.fontSizeOffset * 10,
-                  height: 57 + protectorSettings.fontSizeOffset * 2,
+                  width: 307 + fontSizeOffset * 10,
+                  height: 57 + fontSizeOffset * 2,
                   decoration: BoxDecoration(
                     color: Color(0xffffffff),
                     borderRadius:
@@ -201,16 +217,17 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                   child: TextButton(
                     onPressed: () {
-                      final provider = Provider.of<ProtectorSettingsProvider>(context, listen: false);
-                      provider.vibrate();
-
-                      if (isToggled) {
+                      if (loginMode.isProtectorMode) {
+                        final provider = Provider.of<ProtectorSettingsProvider>(context, listen: false);
+                        provider.vibrate();
                         // 보호자용 페이지로 이동
                         Navigator.push(
                           context,
                           MaterialPageRoute(builder: (context) => HomeScreen()),
                         );
                       } else {
+                        final provider = Provider.of<UserSettingsProvider>(context, listen: false);
+                        provider.vibrate();
                         // 사용자용 페이지로 이동
                         Navigator.push(
                           context,
@@ -226,7 +243,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       style: TextStyle(
                         color: Colors.black,
                         fontWeight: FontWeight.bold,
-                        fontSize: 18 + protectorSettings.fontSizeOffset,
+                        fontSize: 18 + fontSizeOffset,
                       ),
                     ),
                   ),
@@ -245,12 +262,10 @@ class _LoginScreenState extends State<LoginScreen> {
                 children: [
                   // CupertinoSwitch 토글
                   CupertinoSwitch(
-                    value: isToggled,
+                    value: loginMode.isProtectorMode,
                     onChanged: (bool value) {
-                      setState(() {
-                        isToggled = value;
-                      });
-                      Provider.of<ProtectorSettingsProvider>(context, listen: false).vibrate();
+                      loginMode.toggleMode(value);
+                      vibrate();
                     },
                     activeTrackColor: Color(0xff80C5A4), // 활성화된 트랙 색상
                     inactiveTrackColor: Color(0xffF8CB38), // 비활성화된 트랙 색상
@@ -260,10 +275,10 @@ class _LoginScreenState extends State<LoginScreen> {
 
                   // 텍스트
                   Text(
-                    isToggled ? '보호자로 로그인' : '사용자로 로그인',
+                    loginMode.isProtectorMode ? '보호자로 로그인' : '사용자로 로그인',
                     style: TextStyle(
                       color: Colors.black,
-                      fontSize: 18 + protectorSettings.fontSizeOffset,
+                      fontSize: 18 + fontSizeOffset,
                     ),
                   ),
                 ],

@@ -1,8 +1,9 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'Page_UserHome.dart';
-import 'Page_CameraQR.dart';
 import '../widgets/GlobalMicButton.dart';
+import '../widgets/GlobalGoBackButton.dart';
+import '../Pages/Page_UserHome.dart';
+import '../Pages/Page_CameraQR.dart';
 
 class PageNokregistration extends StatefulWidget {
   const PageNokregistration({super.key});
@@ -103,13 +104,15 @@ class _PageNokRegistrationState extends State<PageNokregistration> {
       body: Stack(
         children: [
           // 배경 이미지
-          Container(
-            decoration: const BoxDecoration(
-              image: DecorationImage(
-                image: AssetImage("assets/images/background.png"),
-                fit: BoxFit.cover,
-              ),
+          Positioned.fill(
+            child: Image.asset(
+              'assets/images/background_image.jpg',
+              fit: BoxFit.cover,
             ),
+          ),
+
+          GlobalGoBackButton(
+
           ),
           // 콘텐츠
           Column(
