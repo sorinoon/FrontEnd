@@ -1,8 +1,10 @@
-import 'package:sorinoon/Pages/Page_UserHome.dart';
-
-import '../Pages/Page_NOKRegistration.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../widgets/GlobalMicButton.dart';
+import '../widgets/GlobalGoBackButton.dart';
+import '../Pages/Page_NOKRegistration.dart';
+import '../Pages/UserSettingsProvider.dart';
+import '../Pages/Page_UserHome.dart';
 
 
 class WelcomePage extends StatelessWidget {
@@ -23,6 +25,9 @@ class WelcomePage extends StatelessWidget {
               fit: BoxFit.cover,
             ),
           ),
+
+
+          GlobalGoBackButton(),
           Padding(
             padding: const EdgeInsets.only(top: 140.0, left: 20.0, right: 20.0),
             child: Column(
@@ -99,7 +104,9 @@ class WelcomePage extends StatelessWidget {
                       Navigator.push(
                       context,
                       MaterialPageRoute(builder: (context) => const PageNokregistration()),
-                    );},
+                      );
+                      Provider.of<UserSettingsProvider>(context, listen: false).vibrate();
+                      },
                     style: OutlinedButton.styleFrom(
                       foregroundColor: Colors.black,
                       side: const BorderSide(color: Colors.black, width: 2),
@@ -129,7 +136,9 @@ class WelcomePage extends StatelessWidget {
                   child: OutlinedButton(
                     onPressed: () {
                       Navigator.push(context, MaterialPageRoute(builder: (context) => const U_HomePage()),
-                      );},
+                      );
+                      Provider.of<UserSettingsProvider>(context, listen: false).vibrate();
+                      },
                     style: OutlinedButton.styleFrom(
                       foregroundColor: Colors.red,
                       side: const BorderSide(color: Colors.red, width: 2),

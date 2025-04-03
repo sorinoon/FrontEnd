@@ -1,31 +1,37 @@
 import 'package:flutter/material.dart';
-import 'package:sorinoon/Pages/Page_CameraAnalyze.dart';
-import 'package:sorinoon/Pages/Page_CameraQR.dart';
-import 'package:sorinoon/Pages/Page_Navigate.dart';
-import '../Pages/Page_Setting.dart';
+import 'package:provider/provider.dart';
 import '../widgets/GlobalMicButton.dart';
+import '../widgets/GlobalGoBackButton.dart';
+import '../Pages/Page_CameraAnalyze.dart';
+import '../Pages/Page_Navigate.dart';
+import '../Pages/Page_Setting.dart';
+import '../Pages/UserSettingsProvider.dart';
 
 class U_HomePage extends StatelessWidget {
   const U_HomePage({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final UserSettings = Provider.of<UserSettingsProvider>(context);
+
     return Scaffold(
       body: Stack(
         children: [
-          // 배경 이미지
           Positioned.fill(
             child: Image.asset(
               'assets/images/background_image.jpg',
               fit: BoxFit.cover,
             ),
           ),
+          GlobalGoBackButton(
+
+          ),
 
           // 버튼들 정렬 - 중앙 기준으로 자연스럽게
           Column(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
-              const SizedBox(height: 110), // 상단 여백
+              SizedBox(height: 100 - UserSettings.fontSizeOffset * 4), // 상단 여백
 
               _buildMenuButton(
                 icon: Icons.receipt_long,
@@ -36,9 +42,11 @@ class U_HomePage extends StatelessWidget {
                       context,
                       MaterialPageRoute(builder: (context) => Page_CameraAnalyze()),
                     );
+                    Provider.of<UserSettingsProvider>(context, listen: false).vibrate();
                 },
+                userSettings: UserSettings,
               ),
-              const SizedBox(height: 80),
+              SizedBox(height: 70- UserSettings.fontSizeOffset * 4),
               _buildMenuButton(
                 icon: Icons.settings,
                 label: '설정',
@@ -47,9 +55,11 @@ class U_HomePage extends StatelessWidget {
                     context,
                     MaterialPageRoute(builder: (context) => PageSetting()),
                   );
+                  Provider.of<UserSettingsProvider>(context, listen: false).vibrate();
                 },
+                userSettings: UserSettings,
               ),
-              const SizedBox(height: 80),
+              SizedBox(height: 70- UserSettings.fontSizeOffset * 4),
               _buildMenuButton(
                 icon: Icons.navigation,
                 label: '안내 모드',
@@ -58,10 +68,12 @@ class U_HomePage extends StatelessWidget {
                     context,
                     MaterialPageRoute(builder: (context) => PageNavigate()),
                   );
+                  Provider.of<UserSettingsProvider>(context, listen: false).vibrate();
                 },
+                userSettings: UserSettings,
               ),
 
-              const SizedBox(height: 120), // 하단 마이크 여백
+              const SizedBox(height: 80), // 하단 마이크 여백
             ],
           ),
 
@@ -80,13 +92,17 @@ class U_HomePage extends StatelessWidget {
     required IconData icon,
     required String label,
     required VoidCallback onPressed,
+    required UserSettingsProvider userSettings,
   }) {
     return Center(
       child: GestureDetector(
-        onTap: onPressed,
+        onTap: () {
+          userSettings.vibrate();
+          onPressed();
+        },
         child: Container(
-          width: 170,
-          height: 170,
+          width: 170 + userSettings.fontSizeOffset * 4,
+          height: 170 + userSettings.fontSizeOffset * 4,
           margin: const EdgeInsets.symmetric(vertical: 8),
           decoration: BoxDecoration(
             color: Colors.white,
@@ -100,8 +116,8 @@ class U_HomePage extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Container(
-                width: 90,
-                height: 90,
+                width: 90 + userSettings.fontSizeOffset * 2,
+                height: 90 + userSettings.fontSizeOffset * 2,
                 decoration: const BoxDecoration(
                   color: Color(0xffF8CB38),
                   shape: BoxShape.circle,
@@ -109,15 +125,15 @@ class U_HomePage extends StatelessWidget {
                 child: Icon(
                   icon,
                   color: Colors.white,
-                  size: 55,
+                  size: 55 + userSettings.fontSizeOffset / 2,
                 ),
               ),
               const SizedBox(height: 7),
               Text(
                 label,
-                style: const TextStyle(
+                style: TextStyle(
                   color: Colors.black,
-                  fontSize: 25,
+                  fontSize: 25 + userSettings.fontSizeOffset * 1.5,
                   fontWeight: FontWeight.bold,
                 ),
               ),

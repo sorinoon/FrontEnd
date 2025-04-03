@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:sorinoon/Pages/Page_Login.dart';
 import 'Pages/UserSettingsProvider.dart';
 import 'Pages/ProtectorSettingsProvider.dart';
+import 'Pages/LoginModeProvider.dart';
 import 'Pages/login_protector.dart';
 import 'package:kakao_flutter_sdk_user/kakao_flutter_sdk_user.dart';
 import '../Pages/Page_Navigate.dart';
@@ -19,6 +20,7 @@ void main() {
       providers: [
         ChangeNotifierProvider(create: (_) => UserSettingsProvider()),
         ChangeNotifierProvider(create: (_) => ProtectorSettingsProvider()),
+        ChangeNotifierProvider(create: (_) => LoginModeProvider()),
       ],
       child: MyApp(),
     ),

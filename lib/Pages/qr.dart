@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
-import '../Pages/home_protector.dart'; // HomeScreen 임포트
-import 'dart:math';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:flutter/services.dart';
 import 'package:screenshot/screenshot.dart'; // 스크린샷 패키지
 import 'package:share_plus/share_plus.dart'; // 공유 패키지
 import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
-import 'ProtectorSettingsProvider.dart';
+import 'dart:math';
+import '../widgets/GlobalGoBackButton.dart';
+import '../Pages/ProtectorSettingsProvider.dart';
 
 Set<String> usedCodes = {}; // 이미 사용된 코드 저장 (중복 방지)
 
@@ -35,25 +35,7 @@ class _QRScreenState extends State<QRScreen> {
               fit: BoxFit.cover,
             ),
           ),
-          // goBack 버튼
-          Positioned(
-            top: 40,
-            left: 30,
-            child: GestureDetector(
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => HomeScreen()),
-                );
-                Provider.of<ProtectorSettingsProvider>(context, listen: false).vibrate();
-              },
-              child: Icon(
-                Icons.arrow_back_ios,
-                color: Colors.black,
-                size: 30,
-              ),
-            ),
-          ),
+          GlobalGoBackButton(),
           Positioned(
             top: 150,
             left: 0,

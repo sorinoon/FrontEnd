@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:provider/provider.dart';
-import 'UserSettingsProvider.dart';
-import 'home_protector.dart';
+import '../Pages/Page_NOKRegistration.dart';
+import '../Pages/UserSettingsProvider.dart';
+import '../Pages/home_protector.dart';
 import '../Pages/protectorList.dart';
-import 'register.dart';
 
 class UserSettingScreen extends StatefulWidget {
   const UserSettingScreen({super.key});
@@ -165,7 +165,7 @@ class _UserSettingScreenState extends State<UserSettingScreen> {
                     onTap: () {
                       Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (context) => RegisterScreen()),
+                        MaterialPageRoute(builder: (context) => PageNokregistration()),
                       );
                       Provider.of<UserSettingsProvider>(context, listen: false).vibrate();
                     },

@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../Pages/UserSettingsProvider.dart';
 
 class GlobalMicButton extends StatelessWidget {
   final VoidCallback onPressed;
@@ -11,7 +13,10 @@ class GlobalMicButton extends StatelessWidget {
       bottom: 24,
       left: 24,
       child: GestureDetector(
-        onTap: onPressed,
+        onTap: () {
+          onPressed();
+          Provider.of<UserSettingsProvider>(context, listen: false).vibrate();
+        },
         child: Container(
           width: 110,
           height: 110,

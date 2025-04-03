@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:sorinoon/Pages/protectorList_edit.dart';
-import '../Pages/setting_user.dart';
 import 'package:provider/provider.dart';
-import 'UserSettingsProvider.dart';
+import '../widgets/GlobalMicButton.dart';
+import '../widgets/GlobalEditButton.dart';
+import '../Pages/protectorList_edit.dart';
+import '../Pages/Page_Setting.dart';
+import '../Pages/UserSettingsProvider.dart';
 
 class ProtectorListScreen extends StatefulWidget {
   const ProtectorListScreen({super.key});
@@ -76,7 +78,7 @@ class _ProtectorListScreenState extends State<ProtectorListScreen> {
               onTap: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => UserSettingScreen()),
+                  MaterialPageRoute(builder: (context) => PageSetting()),
                 );
                 Provider.of<UserSettingsProvider>(context, listen: false).vibrate();
               },
@@ -210,51 +212,65 @@ class _ProtectorListScreenState extends State<ProtectorListScreen> {
               ],
             ),
           ),
-          Positioned(
-            bottom: 30,
-            left: 20,
-            child: ElevatedButton(
-              onPressed: () {
-                // 음성인식 기능
-                Provider.of<UserSettingsProvider>(context, listen: false).vibrate();
-              },
-              style: ElevatedButton.styleFrom(
-                shape: CircleBorder(),
-                padding: EdgeInsets.all(12),
-                backgroundColor: Color(0xFFF8CB38),
-              ),
-              child: Icon(
-                Icons.settings_voice,
-                color: Colors.black,
-                size: 38,
-              ),
-            ),
+          // Positioned(
+          //   bottom: 30,
+          //   left: 20,
+          //   child: ElevatedButton(
+          //     onPressed: () {
+          //       // 음성인식 기능
+          //       Provider.of<UserSettingsProvider>(context, listen: false).vibrate();
+          //     },
+          //     style: ElevatedButton.styleFrom(
+          //       shape: CircleBorder(),
+          //       padding: EdgeInsets.all(12),
+          //       backgroundColor: Color(0xFFF8CB38),
+          //     ),
+          //     child: Icon(
+          //       Icons.settings_voice,
+          //       color: Colors.black,
+          //       size: 38,
+          //     ),
+          //   ),
+          // ),
+          GlobalMicButton(
+            onPressed: () {
+              // 마이크 버튼 눌렀을 때 동작 정의
+              print('마이크 버튼 클릭');
+            },
           ),
-          Positioned(
-            bottom: 30,
-            right: 20,
-            child: GestureDetector(
-              onTap: () {
-                Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => ProtectorEditScreen()),
-                );
-                Provider.of<UserSettingsProvider>(context, listen: false).vibrate();
-              },
-              child: Container(
-                width: 60,
-                height: 60,
-                decoration: BoxDecoration(
-                  color: Color(0xFFD6D6D6),
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(
-                  Icons.edit,
-                  color: Colors.black,
-                  size: 30,
-                ),
-              ),
-            ),
+          // Positioned(
+          //   bottom: 30,
+          //   right: 20,
+          //   child: GestureDetector(
+          //     onTap: () {
+          //       Navigator.push(
+          //           context,
+          //           MaterialPageRoute(builder: (context) => ProtectorEditScreen()),
+          //       );
+          //       Provider.of<UserSettingsProvider>(context, listen: false).vibrate();
+          //     },
+          //     child: Container(
+          //       width: 60,
+          //       height: 60,
+          //       decoration: BoxDecoration(
+          //         color: Color(0xFFD6D6D6),
+          //         shape: BoxShape.circle,
+          //       ),
+          //       child: Icon(
+          //         Icons.edit,
+          //         color: Colors.black,
+          //         size: 30,
+          //       ),
+          //     ),
+          //   ),
+          // ),
+          GlobalEditButton(
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const ProtectorEditScreen()),
+              );
+            },
           ),
         ],
       ),

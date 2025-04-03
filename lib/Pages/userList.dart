@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../widgets/GlobalGoBackButton.dart';
 import '../Pages/ProtectorSettingsProvider.dart';
-import 'home_protector.dart'; // HomeScreen 임포트
 import '../Pages/location.dart';
 
 class UserListScreen extends StatefulWidget {
@@ -42,29 +42,11 @@ class _UserListScreenState extends State<UserListScreen> {
             ),
           ),
 
-          // goBack 버튼
-          Positioned(
-            top: 40,
-            left: 30,
-            child: GestureDetector(
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => HomeScreen()),
-                );
-                Provider.of<ProtectorSettingsProvider>(context, listen: false).vibrate();
-              },
-              child: Icon(
-                Icons.arrow_back_ios,
-                color: Colors.black,
-                size: 30,
-              ),
-            ),
-          ),
+          GlobalGoBackButton(),
 
           // 제목
           Positioned(
-            top: 40,
+            top: 50,
             left: 0,
             right: 0,
             child: Center(

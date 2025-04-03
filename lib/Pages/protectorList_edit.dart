@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import '../Pages/protectorList.dart';
 import 'package:provider/provider.dart';
+import '../widgets/GlobalMicButton.dart';
+import '../Pages/protectorList.dart';
 import '../Pages/UserSettingsProvider.dart';
 
 class ProtectorEditScreen extends StatefulWidget {
@@ -130,29 +131,35 @@ class _ProtectorEditScreenState extends State<ProtectorEditScreen> {
               ],
             ),
           ),
-          Positioned(
-            bottom: 30,
-            left: 20,
-            child: ElevatedButton(
-              onPressed: () {
-                // 음성인식 기능
-                Provider.of<UserSettingsProvider>(context, listen: false).vibrate();
-              },
-              style: ElevatedButton.styleFrom(
-                shape: CircleBorder(),
-                padding: EdgeInsets.all(12),
-                backgroundColor: Color(0xFFF8CB38),
-              ),
-              child: Icon(
-                Icons.settings_voice,
-                color: Colors.black,
-                size: 38,
-              ),
-            ),
+          // Positioned(
+          //   bottom: 30,
+          //   left: 20,
+          //   child: ElevatedButton(
+          //     onPressed: () {
+          //       // 음성인식 기능
+          //       Provider.of<UserSettingsProvider>(context, listen: false).vibrate();
+          //     },
+          //     style: ElevatedButton.styleFrom(
+          //       shape: CircleBorder(),
+          //       padding: EdgeInsets.all(12),
+          //       backgroundColor: Color(0xFFF8CB38),
+          //     ),
+          //     child: Icon(
+          //       Icons.settings_voice,
+          //       color: Colors.black,
+          //       size: 38,
+          //     ),
+          //   ),
+          // ),
+          GlobalMicButton(
+            onPressed: () {
+              // 마이크 버튼 눌렀을 때 동작 정의
+              print('마이크 버튼 클릭');
+            },
           ),
           Positioned(
-            bottom: 30,
-            right: 20,
+            bottom: 48,
+            right: 43,
             child: GestureDetector(
               onTap: () {
                 Navigator.push(
@@ -162,16 +169,23 @@ class _ProtectorEditScreenState extends State<ProtectorEditScreen> {
                 Provider.of<UserSettingsProvider>(context, listen: false).vibrate();
               },
               child: Container(
-                width: 60,
-                height: 60,
+                width: 69,
+                height: 69,
                 decoration: BoxDecoration(
                   color: Color(0xFFFFE48A),
                   shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black26,
+                      blurRadius: 4,
+                      offset: Offset(2, 2),
+                    ),
+                  ],
                 ),
                 child: Icon(
                   Icons.check,
                   color: Colors.black,
-                  size: 30,
+                  size: 36,
                 ),
               ),
             ),

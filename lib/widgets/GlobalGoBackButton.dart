@@ -1,22 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:flutter_screen_wake/flutter_screen_wake.dart';
 import '../Pages/UserSettingsProvider.dart';
 import '../Pages/ProtectorSettingsProvider.dart';
 import '../Pages/LoginModeProvider.dart';
 
-class GlobalEditButton extends StatelessWidget {
-  final VoidCallback onPressed;
+class GlobalGoBackButton extends StatelessWidget {
 
-  const GlobalEditButton({super.key, required this.onPressed});
+  const GlobalGoBackButton({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Positioned(
-      bottom: 48,
-      right: 43,
+      top: 50,
+      left: 40,
       child: GestureDetector(
         onTap: () {
-          onPressed();
           final isProtectorMode = Provider.of<LoginModeProvider>(context, listen: false).isProtectorMode;
 
           if (isProtectorMode) {
@@ -24,22 +23,18 @@ class GlobalEditButton extends StatelessWidget {
           } else {
             Provider.of<UserSettingsProvider>(context, listen: false).vibrate();
           }
+          // 화면 밝기 복원
+          FlutterScreenWake.setBrightness(1.0);
+
+          // 기존 페이지를 닫고 이전 화면으로 돌아가기
+          if (Navigator.canPop(context)) {
+            Navigator.pop(context);
+          }
         },
-        child: Container(
-          width: 69,
-          height: 69,
-          decoration: const BoxDecoration(
-            shape: BoxShape.circle,
-            color: Colors.grey,
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black26,
-                blurRadius: 4,
-                offset: Offset(2, 2),
-              ),
-            ],
-          ),
-          child: const Icon(Icons.edit, size: 36),
+        child: const Icon(
+          Icons.arrow_back_ios,
+          color: Colors.black,
+          size: 30,
         ),
       ),
     );

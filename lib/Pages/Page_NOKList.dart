@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../widgets/GlobalMicButton.dart';
+import '../widgets/GlobalEditButton.dart';
+import '../widgets/GlobalGoBackButton.dart';
 import '../Pages/Page_NokEdit.dart';
-import '../widgets/GlobalEditButton.dart'; // 추가!
+import '../Pages/UserSettingsProvider.dart';
 
 class PageNOKList extends StatefulWidget {
   const PageNOKList({super.key});
@@ -13,20 +16,54 @@ class PageNOKList extends StatefulWidget {
 class _PageNOKListState extends State<PageNOKList> {
   List<Map<String, dynamic>> guardians = [
     {'name': '어머니', 'phone': '010-1234-5678', 'highlight': true},
-    {'name': '아버지', 'phone': '010-1234-5678'},
-    {'name': '딸', 'phone': '010-1234-5678'},
-    {'name': '아들', 'phone': '010-1234-5678'},
+    {'name': '아버지', 'phone': '010-1234-1234'},
+    {'name': '딸', 'phone': '010-5678-1234'},
+    {'name': '아들', 'phone': '010-5678-5678'},
   ];
 
   @override
   Widget build(BuildContext context) {
+    final fontSizeOffset = Provider.of<UserSettingsProvider>(context).fontSizeOffset;
+
     return Scaffold(
       body: Stack(
         children: [
           Positioned.fill(
             child: Image.asset(
-              'assets/images/background.png',
+              'assets/images/background_image.jpg',
               fit: BoxFit.cover,
+            ),
+          ),
+          GlobalGoBackButton(),
+          // 제목
+          Positioned(
+            top: 50,
+            left: 0,
+            right: 0,
+            child: Center(
+              child: Text(
+                '보호자 목록',
+                style: TextStyle(
+                  fontSize: 25 + fontSizeOffset,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black,
+                ),
+              ),
+            ),
+          ),
+          // 부제목
+          Positioned(
+            top: 87,
+            left: 0,
+            right: 0,
+            child: Center(
+              child: Text(
+                '긴급 연락처 순서 설정',
+                style: TextStyle(
+                  fontSize: 15 + fontSizeOffset,
+                  color: Color(0xff848484),
+                ),
+              ),
             ),
           ),
           SafeArea(
@@ -34,32 +71,7 @@ class _PageNOKListState extends State<PageNOKList> {
               padding: const EdgeInsets.symmetric(horizontal: 20.0),
               child: Column(
                 children: [
-                  const SizedBox(height: 16),
-                  // 상단 바
-                  Row(
-                    children: [
-                      IconButton(
-                        icon: const Icon(Icons.arrow_back),
-                        onPressed: () => Navigator.pop(context),
-                      ),
-                      const Spacer(),
-                      const Text(
-                        '보호자 목록',
-                        style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const Spacer(flex: 2),
-                    ],
-                  ),
-                  const SizedBox(height: 4),
-                  const Text(
-                    '긴급 연락처 순서 설정',
-                    style: TextStyle(color: Colors.grey),
-                  ),
-                  const SizedBox(height: 16),
-                  // 보호자 리스트 (드래그 가능)
+                  const SizedBox(height: 80),
                   Expanded(
                     child: ReorderableListView.builder(
                       itemCount: guardians.length,
@@ -68,52 +80,55 @@ class _PageNOKListState extends State<PageNOKList> {
                         return ReorderableDragStartListener(
                           key: ValueKey(guardian),
                           index: index,
-                          child: Container(
-                            margin: const EdgeInsets.symmetric(vertical: 4),
-                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                            decoration: BoxDecoration(
-                              color: Colors.white.withOpacity(0.8),
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: Row(
-                              children: [
-                                // 순위 동그라미
-                                Container(
-                                  width: 16,
-                                  height: 16,
-                                  margin: const EdgeInsets.only(right: 12),
-                                  decoration: BoxDecoration(
-                                    shape: BoxShape.circle,
-                                    color: guardian['highlight'] == true
-                                        ? Colors.yellow
-                                        : Colors.grey,
+                          child: GestureDetector(
+                            onTapDown: (_) {
+                              Provider.of<UserSettingsProvider>(context, listen: false).vibrate();
+                            },
+                            child: Container(
+                              margin: const EdgeInsets.symmetric(vertical: 6),
+                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                              decoration: BoxDecoration(
+                                color: Colors.white.withOpacity(0.8),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Row(
+                                children: [
+                                  Container(
+                                    width: 25,
+                                    height: 25,
+                                    margin: const EdgeInsets.only(right: 12),
+                                    decoration: BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      color: guardian['highlight'] == true
+                                          ? Color(0xFFF8CB38)
+                                          : Color(0xFFD6D6D6),
+                                    ),
                                   ),
-                                ),
-                                // 이름 및 전화번호
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        guardian['name'],
-                                        style: const TextStyle(
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.bold,
-                                        ),
+                                  SizedBox(
+                                    width: 100,
+                                    child: Text(
+                                      guardian['name'],
+                                      style: TextStyle(
+                                        fontSize: 22 + fontSizeOffset,
+                                        fontWeight: FontWeight.bold,
                                       ),
-                                      const SizedBox(height: 2),
-                                      Text(
-                                        guardian['phone'],
-                                        style: const TextStyle(
-                                          color: Colors.grey,
-                                          fontSize: 13,
-                                        ),
-                                      ),
-                                    ],
+                                    ),
                                   ),
-                                ),
-                                const Icon(Icons.drag_handle),
-                              ],
+                                  Container(
+                                    width: 140,
+                                    alignment: Alignment.centerLeft,
+                                    child: Text(
+                                      guardian['phone'],
+                                      style: TextStyle(
+                                        fontSize: 16 + fontSizeOffset,
+                                        color: Color(0xff4E4E4E),
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 38),
+                                  const Icon(Icons.drag_handle, size: 30),
+                                ],
+                              ),
                             ),
                           ),
                         );
@@ -123,6 +138,9 @@ class _PageNOKListState extends State<PageNOKList> {
                           if (newIndex > oldIndex) newIndex -= 1;
                           final item = guardians.removeAt(oldIndex);
                           guardians.insert(newIndex, item);
+                          for (int i = 0; i < guardians.length; i++) {
+                            guardians[i]['highlight'] = i == 0;
+                          }
                         });
                       },
                     ),
@@ -131,24 +149,19 @@ class _PageNOKListState extends State<PageNOKList> {
               ),
             ),
           ),
-
-          // GlobalMicButton
           GlobalMicButton(
             onPressed: () {
               print("마이크 버튼 클릭");
-            },
+              },
           ),
-
-// GlobalEditButton
           GlobalEditButton(
             onPressed: () {
               Navigator.push(
                 context,
                 MaterialPageRoute(builder: (context) => const PageNokEdit()),
               );
-            },
+              },
           ),
-
         ],
       ),
     );
