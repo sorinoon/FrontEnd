@@ -72,7 +72,7 @@ class _LoginScreenState extends State<LoginScreen> {
           ),
           body: WebViewWidget(
 
-            //백엔드! 스프링부트 서버 넣어주세요
+            //Todo 백엔드 스프링부트 서버
             controller: _webViewController..loadRequest(Uri.parse('http://<YOUR_SERVER_IP>:8080/login/page')),     // spring boot 서버 필요
 
           ),
@@ -234,6 +234,7 @@ class _LoginScreenState extends State<LoginScreen> {
               ],
             ),
           ),
+
           Positioned(
             top: 800,
             left: 0,
@@ -265,7 +266,6 @@ class _LoginScreenState extends State<LoginScreen> {
                       fontSize: 18 + protectorSettings.fontSizeOffset,
                     ),
                   ),
-
                 ],
               ),
             ),

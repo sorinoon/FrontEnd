@@ -3,7 +3,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:provider/provider.dart';
 import 'UserSettingsProvider.dart';
 import 'home_protector.dart';
-import '../Pages/protectorList.dart';
+import 'protectorList.dart';
 import 'register.dart';
 
 class UserSettingScreen extends StatefulWidget {
@@ -235,7 +235,7 @@ class SettingItem extends StatelessWidget {
   final ValueChanged<bool>? onToggleChanged;
   final VoidCallback? onTap;
 
-  const SettingItem({super.key, 
+  const SettingItem({super.key,
     required this.title,
     this.subtitle,
     this.rightText,
@@ -251,52 +251,52 @@ class SettingItem extends StatelessWidget {
     final fontSizeOffset = Provider.of<UserSettingsProvider>(context).fontSizeOffset;
 
     return Container(
-        padding: EdgeInsets.symmetric(vertical: 11, horizontal: 15),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            // 제목과 subtitle을 포함하는 왼쪽 영역
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // 제목 텍스트
-                  Text(
-                    title,
-                    style: TextStyle(fontSize: 20 + fontSizeOffset),
-                  ),
-                  // subtitle
-                  if (subtitle != null)
-                    Padding(
-                      padding: EdgeInsets.only(top: 4),
-                      child: Text(
-                        subtitle!,
-                        style: TextStyle(fontSize: 14 + fontSizeOffset, color: Color(0xff8F8996)),
-                        overflow: TextOverflow.visible, // 텍스트가 길어질 경우 자동 줄바꿈
-                      ),
-                    ),
-                ],
-              ),
-            ),
-
-            // 우측 요소 (토글, 텍스트, 아이콘)
-            if (hasToggle)
-              CupertinoSwitch(
-                value: toggleValue ?? false,
-                onChanged: onToggleChanged,
-                activeTrackColor: Color(0xffF8CB38), // 활성화된 트랙 색상
-                inactiveTrackColor: Color(0xffE7E7E8),  // 비활성화된 트랙 색상
-                thumbColor: CupertinoColors.white, // 원 색상
-              )
-            else if (rightText != null) // 토글이 없어도 우측 정렬
-              Flexible(
-                child: Text(
-                  rightText!,
-                  style: TextStyle(fontSize: 14 + fontSizeOffset, color: Color(0xff8F8996)),
-                  overflow: TextOverflow.visible,
+      padding: EdgeInsets.symmetric(vertical: 11, horizontal: 15),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          // 제목과 subtitle을 포함하는 왼쪽 영역
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // 제목 텍스트
+                Text(
+                  title,
+                  style: TextStyle(fontSize: 20 + fontSizeOffset),
                 ),
-              )
-            else if (rightIcon != null)
+                // subtitle
+                if (subtitle != null)
+                  Padding(
+                    padding: EdgeInsets.only(top: 4),
+                    child: Text(
+                      subtitle!,
+                      style: TextStyle(fontSize: 14 + fontSizeOffset, color: Color(0xff8F8996)),
+                      overflow: TextOverflow.visible, // 텍스트가 길어질 경우 자동 줄바꿈
+                    ),
+                  ),
+              ],
+            ),
+          ),
+
+          // 우측 요소 (토글, 텍스트, 아이콘)
+          if (hasToggle)
+            CupertinoSwitch(
+              value: toggleValue ?? false,
+              onChanged: onToggleChanged,
+              activeTrackColor: Color(0xffF8CB38), // 활성화된 트랙 색상
+              inactiveTrackColor: Color(0xffE7E7E8),  // 비활성화된 트랙 색상
+              thumbColor: CupertinoColors.white, // 원 색상
+            )
+          else if (rightText != null) // 토글이 없어도 우측 정렬
+            Flexible(
+              child: Text(
+                rightText!,
+                style: TextStyle(fontSize: 14 + fontSizeOffset, color: Color(0xff8F8996)),
+                overflow: TextOverflow.visible,
+              ),
+            )
+          else if (rightIcon != null)
               GestureDetector(
                 onTap: onTap,
                 child: Icon(
@@ -304,8 +304,8 @@ class SettingItem extends StatelessWidget {
                   size: 25,
                 ),
               ),
-          ],
-        ),
+        ],
+      ),
     );
   }
 }

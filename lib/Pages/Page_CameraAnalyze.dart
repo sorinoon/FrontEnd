@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 import '../widgets/globalMicButton.dart';
 
 class Page_CameraAnalyze extends StatefulWidget {
@@ -10,6 +12,24 @@ class Page_CameraAnalyze extends StatefulWidget {
 class _Page_CameraAnalyzeState extends State<Page_CameraAnalyze> {
   final MobileScannerController controller = MobileScannerController();
   bool _isProcessing = false;
+
+  // 바코드 데이터를 백엔드 API에 전송하는 메서드
+  Future<void> sendBarcodeData(String barcode) async {
+    final url = Uri.parse('http://127.0.0.1:8000/video_feed/');
+    final headers = {"Content-Type": "application/json"};
+    final body = jsonEncode({"barcode": barcode});
+
+    try {
+      final response = await http.post(url, headers: headers, body: body);
+      if (response.statusCode == 200) {
+        debugPrint('서버 응답: ${response.body}');
+      } else {
+        debugPrint('서버 오류: ${response.statusCode}');
+      }
+    } catch (e) {
+      debugPrint('네트워크 오류: $e');
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -25,7 +45,11 @@ class _Page_CameraAnalyzeState extends State<Page_CameraAnalyze> {
               if (!_isProcessing && barcodes.isNotEmpty) {
                 _isProcessing = true;
                 controller.stop();
-                debugPrint('Detected: ${barcodes.first.rawValue}');
+                final barcodeValue = barcodes.first.rawValue ?? 'Unknown';
+                debugPrint('Detected: $barcodeValue');
+
+                // 백엔드에 바코드 데이터 전송
+                await sendBarcodeData(barcodeValue);
 
                 await Future.delayed(Duration(seconds: 2));
                 _isProcessing = false;
@@ -45,7 +69,7 @@ class _Page_CameraAnalyzeState extends State<Page_CameraAnalyze> {
                 height: 30,
                 child: Image.asset(
                   'assets/images/Arrow_back.png',
-                  fit: BoxFit.scaleDown, // 또는 BoxFit.fill
+                  fit: BoxFit.scaleDown,
                 ),
               ),
             ),
@@ -66,7 +90,7 @@ class _Page_CameraAnalyzeState extends State<Page_CameraAnalyze> {
                 child: Text(
                   '인식 모드',
                   style: TextStyle(
-                    fontSize: 20, // 폰트 크기 증가
+                    fontSize: 20,
                     color: Colors.black,
                     fontWeight: FontWeight.bold,
                   ),
