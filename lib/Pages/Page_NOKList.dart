@@ -3,14 +3,14 @@ import '../widgets/GlobalMicButton.dart';
 import '../Pages/Page_NokEdit.dart';
 import '../widgets/GlobalEditButton.dart'; // 추가!
 
-class PageNOKList extends StatefulWidget {
-  const PageNOKList({super.key});
+class ListScreen extends StatefulWidget {
+  const ListScreen({super.key});
 
   @override
-  State<PageNOKList> createState() => _PageNOKListState();
+  State<ListScreen> createState() => _ListScreen();
 }
 
-class _PageNOKListState extends State<PageNOKList> {
+class _ListScreen extends State<ListScreen> {
   List<Map<String, dynamic>> guardians = [
     {'name': '어머니', 'phone': '010-1234-5678', 'highlight': true},
     {'name': '아버지', 'phone': '010-1234-5678'},

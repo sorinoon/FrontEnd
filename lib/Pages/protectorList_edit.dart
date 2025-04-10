@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import '../Pages/protectorList.dart';
+import '../Pages/User_NOKList.dart';
 import 'package:provider/provider.dart';
-import '../Pages/UserSettingsProvider.dart';
+import '../Pages/User_SettingsProvider.dart';
 
 class ProtectorEditScreen extends StatefulWidget {
   const ProtectorEditScreen({super.key});

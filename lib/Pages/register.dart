@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'setting_user.dart';
+import 'User_setting.dart';
 
 class RegisterScreen extends StatelessWidget {
   const RegisterScreen({super.key});
