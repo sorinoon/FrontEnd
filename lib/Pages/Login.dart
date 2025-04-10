@@ -24,13 +24,11 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   void initState() {
     super.initState();
-    // WebViewController 초기화
     _webViewController = WebViewController()
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
       ..setNavigationDelegate(
         NavigationDelegate(
           onPageStarted: (String url) {
-            // URL 변경 감지
             if (url.contains("code=")) {
               final Uri uri = Uri.parse(url);
               final String? code = uri.queryParameters['code'];
@@ -43,16 +41,19 @@ class _LoginScreenState extends State<LoginScreen> {
       );
   }
 
-  // Spring Boot 서버에 인증 코드 전달
   Future<void> _sendCodeToServer(String code) async {
     try {
       final response = await http.get(
-        Uri.parse('http://<YOUR_SERVER_IP>:8080/callback?code=$code'),   // spring boot 서버 필요
+        Uri.parse('http://<YOUR_SERVER_IP>:8080/callback?code=$code'),
       );
 
       if (response.statusCode == 200) {
         print("로그인 성공! 응답: ${response.body}");
-        // TODO: 로그인 성공 후 사용자 정보 처리 및 화면 이동
+        // 로그인 성공 후 화면 이동
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => NOKHomeScreen()),
+        );
       } else {
         print("로그인 실패: ${response.statusCode}");
       }
@@ -61,26 +62,20 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
-  // 카카오 로그인 버튼 클릭 시 WebView로 로그인 페이지 열기
   void _signInWithKakao() {
     Navigator.push(
       context,
       MaterialPageRoute(
         builder: (context) => Scaffold(
-          appBar: AppBar(
-            title: const Text("카카오 로그인"),
-          ),
+          appBar: AppBar(title: const Text("카카오 로그인")),
           body: WebViewWidget(
-
-            //Todo 백엔드 스프링부트 서버
-            controller: _webViewController..loadRequest(Uri.parse('http://<YOUR_SERVER_IP>:8080/login/page')),     // spring boot 서버 필요
-
+            controller: _webViewController
+              ..loadRequest(Uri.parse('http://<YOUR_SERVER_IP>:8080/login/page')),
           ),
         ),
       ),
     );
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -89,39 +84,26 @@ class _LoginScreenState extends State<LoginScreen> {
     return Scaffold(
       body: Stack(
         children: [
-          // 배경
           Positioned.fill(
-            child: Image.asset(
-              'assets/images/background_image.jpg',
-              fit: BoxFit.cover,
-            ),
+            child: Image.asset('assets/images/background_image.jpg', fit: BoxFit.cover),
           ),
-          // 로고 및 이름
           Positioned(
             top: 230 - protectorSettings.fontSizeOffset * 4,
             left: 0,
             right: 0,
             child: Center(
               child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Container(
                     width: 120,
                     height: 120,
                     decoration: BoxDecoration(
-                      color: isToggled ? Color(0xff80C5A4) : Color(0xffF8CB38), // 네모 박스 색상
+                      color: isToggled ? Color(0xff80C5A4) : Color(0xffF8CB38),
                       borderRadius: BorderRadius.circular(40),
                     ),
-                    child: Center(
-                      child: Icon(
-                        Icons.image, // 로고 대체
-                        color: Colors.white,
-                        size: 40 + protectorSettings.fontSizeOffset,
-                      ),
-                    ),
+                    child: Icon(Icons.image, color: Colors.white, size: 40 + protectorSettings.fontSizeOffset),
                   ),
                   SizedBox(height: 5),
-                  // 앱 이름
                   Text(
                     '소리눈',
                     style: TextStyle(
@@ -138,28 +120,23 @@ class _LoginScreenState extends State<LoginScreen> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                SizedBox(height: 450 - protectorSettings.fontSizeOffset * 5), // 로고와 버튼 간격 조정
+                SizedBox(height: 450 - protectorSettings.fontSizeOffset * 5),
                 Container(
                   width: 307 + protectorSettings.fontSizeOffset * 10,
                   height: 57 + protectorSettings.fontSizeOffset * 2,
                   decoration: BoxDecoration(
                     color: Color(0xFFFFE726),
                     borderRadius: BorderRadius.circular(50),
-                    border: Border.all( // 테두리
-                      color: Color(0xffe2e2e2),
-                      width: 1,
-                    ),
+                    border: Border.all(color: Color(0xffe2e2e2), width: 1),
                   ),
                   child: TextButton(
-                    onPressed:() {
+                    onPressed: () {
                       final provider = Provider.of<NOKSettingsProvider>(context, listen: false);
                       provider.vibrate();
 
                       if (isToggled) {
-                        // 보호자용 페이지로 이동
-                            _signInWithKakao();// 카카오 로그인 버튼 클릭 시 처리
+                        _signInWithKakao(); // 보호자 로그인
                       } else {
-                        // 사용자용 페이지로 이동
                         Navigator.push(
                           context,
                           MaterialPageRoute(builder: (context) => WelcomeScreen()),
@@ -167,14 +144,9 @@ class _LoginScreenState extends State<LoginScreen> {
                       }
                     },
                     child: Row(
-                      mainAxisAlignment:
-                      MainAxisAlignment.center, // 이미지와 텍스트가 중앙에 오도록
+                      mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Image.asset(
-                          'assets/images/kakao_logo.jpg',
-                          width: 46,
-                          height: 37,
-                        ),
+                        Image.asset('assets/images/kakao_logo.jpg', width: 46, height: 37),
                         SizedBox(width: 2),
                         Text(
                           '카카오로 3초만에 시작하기',
@@ -188,16 +160,14 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                   ),
                 ),
-                SizedBox(height: 20), // 버튼 간 간격 조정
+                SizedBox(height: 20),
                 Container(
                   width: 307 + protectorSettings.fontSizeOffset * 10,
                   height: 57 + protectorSettings.fontSizeOffset * 2,
                   decoration: BoxDecoration(
-                    color: Color(0xffffffff),
-                    borderRadius:
-                    BorderRadius.circular(50), // 둥근 모서리 적용
-                    border:
-                    Border.all(color: Colors.black, width: 1), // 테두리 적용
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(50),
+                    border: Border.all(color: Colors.black, width: 1),
                   ),
                   child: TextButton(
                     onPressed: () {
@@ -205,13 +175,11 @@ class _LoginScreenState extends State<LoginScreen> {
                       provider.vibrate();
 
                       if (isToggled) {
-                        // 보호자용 페이지로 이동
                         Navigator.push(
                           context,
                           MaterialPageRoute(builder: (context) => NOKHomeScreen()),
                         );
                       } else {
-                        // 사용자용 페이지로 이동
                         Navigator.push(
                           context,
                           MaterialPageRoute(builder: (context) => UserHomeScreen()),
@@ -220,8 +188,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
                       print("둘러보기 버튼");
                     },
-                    child:
-                    Text(
+                    child: Text(
                       '어플 둘러보기',
                       style: TextStyle(
                         color: Colors.black,
@@ -230,20 +197,18 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                     ),
                   ),
-                )
+                ),
               ],
             ),
           ),
-
           Positioned(
             top: 800,
             left: 0,
             right: 0,
-            child: Center( // 중앙 정렬
+            child: Center(
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  // CupertinoSwitch 토글
                   CupertinoSwitch(
                     value: isToggled,
                     onChanged: (bool value) {
@@ -252,13 +217,11 @@ class _LoginScreenState extends State<LoginScreen> {
                       });
                       Provider.of<NOKSettingsProvider>(context, listen: false).vibrate();
                     },
-                    activeTrackColor: Color(0xff80C5A4), // 활성화된 트랙 색상
-                    inactiveTrackColor: Color(0xffF8CB38), // 비활성화된 트랙 색상
-                    thumbColor: CupertinoColors.white, // 원 색상
+                    activeTrackColor: Color(0xff80C5A4),
+                    inactiveTrackColor: Color(0xffF8CB38),
+                    thumbColor: CupertinoColors.white,
                   ),
                   SizedBox(width: 5),
-
-                  // 텍스트
                   Text(
                     isToggled ? '보호자로 로그인' : '사용자로 로그인',
                     style: TextStyle(
