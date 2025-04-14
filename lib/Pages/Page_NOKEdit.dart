@@ -3,7 +3,7 @@ import 'package:provider/provider.dart';
 import '../widgets/GlobalGoBackButton.dart';
 import '../widgets/GlobalMicButton.dart';
 import '../Pages/Page_NOKList.dart';
-import '../Pages/UserSettingsProvider.dart';
+import '../Pages/User_SettingsProvider.dart';
 
 class PageNokEdit extends StatefulWidget {
   const PageNokEdit({super.key});
@@ -153,7 +153,7 @@ class _PageNOKEditState extends State<PageNokEdit> {
               onTap: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => PageNOKList()),
+                  MaterialPageRoute(builder: (context) => ListScreen()),
                 );},
               child: Container(
                 width: 69,

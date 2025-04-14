@@ -6,7 +6,6 @@ import 'Login.dart';
 import 'NOK_Userlist.dart';
 import 'NOK_Setting.dart';
 import 'NOK_QR.dart';
-import 'setting_user.dart';
 
 class NOKHomeScreen extends StatelessWidget {
   const NOKHomeScreen({super.key});

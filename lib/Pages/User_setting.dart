@@ -4,8 +4,8 @@ import 'package:provider/provider.dart';
 import 'User_SettingsProvider.dart';
 import 'NOK_Home.dart';
 import 'User_NOKList.dart';
-import 'register.dart';
 import 'User_Home.dart';
+import '../Pages/User_NOKConnect.dart';
 import '../widgets/GlobalMicButton.dart';
 import '../widgets/GlobalGoBackButton.dart';
 

@@ -4,7 +4,7 @@ import '../widgets/GlobalMicButton.dart';
 import '../widgets/GlobalEditButton.dart';
 import '../widgets/GlobalGoBackButton.dart';
 import '../Pages/Page_NokEdit.dart';
-import '../Pages/UserSettingsProvider.dart';
+import '../Pages/User_SettingsProvider.dart';
 
 class ListScreen extends StatefulWidget {
   const ListScreen({super.key});

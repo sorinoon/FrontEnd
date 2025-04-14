@@ -5,7 +5,7 @@ import 'Pages/User_SettingsProvider.dart';
 import 'Pages/NOK_SettingsProvider.dart';
 import 'Pages/LoginModeProvider.dart';
 import 'package:kakao_flutter_sdk_user/kakao_flutter_sdk_user.dart';
-import '../Pages/Page_Navigate.dart';
+import '../Pages/User_Navigate.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized(); // Flutter 엔진 초기화

@@ -5,7 +5,7 @@ import 'package:provider/provider.dart';
 import 'package:flutter_screen_wake/flutter_screen_wake.dart';
 import '../widgets/GlobalMicButton.dart';
 import '../widgets/GlobalGoBackButton.dart';
-import '../Pages/UserSettingsProvider.dart';
+import '../Pages/User_SettingsProvider.dart';
 
 class PageNavigate extends StatefulWidget {
   const PageNavigate({Key? key}) : super(key: key);

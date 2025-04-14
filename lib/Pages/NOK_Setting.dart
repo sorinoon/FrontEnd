@@ -80,7 +80,7 @@ class _NOKSettingScreen extends State<NOKSettingScreen> {
                     protectorSettings.isVibrationEnabled,
                         (value) {
                           protectorSettings.toggleVibration(value);
-                      Provider.of<ProtectorSettingsProvider>(context, listen: false).vibrate();
+                      Provider.of<NOKSettingsProvider>(context, listen: false).vibrate();
                     },
                   ),
                   _buildSwitchTile(
@@ -89,7 +89,7 @@ class _NOKSettingScreen extends State<NOKSettingScreen> {
                     protectorSettings.isFontSizeIncreased,
                         (value) {
                           protectorSettings.toggleFontSize(value); // 전역 상태 업데이트
-                      Provider.of<ProtectorSettingsProvider>(context, listen: false).vibrate();
+                      Provider.of<NOKSettingsProvider>(context, listen: false).vibrate();
                     },
                   ),
 
@@ -104,7 +104,7 @@ class _NOKSettingScreen extends State<NOKSettingScreen> {
   }
 
   Widget _buildSwitchTile(String title, String subtitle, bool initialValue, ValueChanged<bool> onChanged) {
-    final protectorSettings = Provider.of<ProtectorSettingsProvider>(context);
+    final protectorSettings = Provider.of<NOKSettingsProvider>(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [

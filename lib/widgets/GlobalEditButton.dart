@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../Pages/UserSettingsProvider.dart';
-import '../Pages/ProtectorSettingsProvider.dart';
+import '../Pages/User_SettingsProvider.dart';
+import '../Pages/NOK_SettingsProvider.dart';
 import '../Pages/LoginModeProvider.dart';
 
 class GlobalEditButton extends StatelessWidget {
@@ -20,7 +20,7 @@ class GlobalEditButton extends StatelessWidget {
           final isProtectorMode = Provider.of<LoginModeProvider>(context, listen: false).isProtectorMode;
 
           if (isProtectorMode) {
-            Provider.of<ProtectorSettingsProvider>(context, listen: false).vibrate();
+            Provider.of<NOKSettingsProvider>(context, listen: false).vibrate();
           } else {
             Provider.of<UserSettingsProvider>(context, listen: false).vibrate();
           }

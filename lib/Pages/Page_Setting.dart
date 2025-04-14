@@ -3,9 +3,9 @@ import 'package:flutter/cupertino.dart';
 import 'package:provider/provider.dart';
 import '../widgets/GlobalMicButton.dart';
 import '../widgets/GlobalGoBackButton.dart';
-import '../Pages/Page_NOKRegistration.dart';
+import '../Pages/User_NOKConnect.dart';
 import '../Pages/Page_NOKList.dart';
-import '../Pages/UserSettingsProvider.dart';
+import '../Pages/User_SettingsProvider.dart';
 
 class PageSetting extends StatefulWidget {
   const PageSetting({super.key});
@@ -123,7 +123,7 @@ class _PageSettingState extends State<PageSetting> {
                     onTap: () {
                       Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (context) => const PageNokregistration()),
+                        MaterialPageRoute(builder: (context) => const NOKConnectScreen()),
                       );
                       Provider.of<UserSettingsProvider>(context, listen: false).vibrate();
                     },
@@ -136,7 +136,7 @@ class _PageSettingState extends State<PageSetting> {
                     onTap: () {
                       Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (context) => const PageNOKList()),
+                        MaterialPageRoute(builder: (context) => const ListScreen()),
                       );
                       Provider.of<UserSettingsProvider>(context, listen: false).vibrate();
                     },
