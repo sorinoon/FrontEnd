@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:sorinoon/Pages/Page_Login.dart';
-import 'Pages/UserSettingsProvider.dart';
-import 'Pages/ProtectorSettingsProvider.dart';
+import 'package:sorinoon/Pages/Login.dart';
+import 'Pages/User_SettingsProvider.dart';
+import 'Pages/NOK_SettingsProvider.dart';
 import 'Pages/LoginModeProvider.dart';
-import 'Pages/login_protector.dart';
 import 'package:kakao_flutter_sdk_user/kakao_flutter_sdk_user.dart';
 import '../Pages/Page_Navigate.dart';
 
@@ -19,7 +18,7 @@ void main() {
     MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => UserSettingsProvider()),
-        ChangeNotifierProvider(create: (_) => ProtectorSettingsProvider()),
+        ChangeNotifierProvider(create: (_) => NOKSettingsProvider()),
         ChangeNotifierProvider(create: (_) => LoginModeProvider()),
       ],
       child: MyApp(),

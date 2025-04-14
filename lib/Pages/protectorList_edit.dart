@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../widgets/GlobalMicButton.dart';
-import '../Pages/protectorList.dart';
-import '../Pages/UserSettingsProvider.dart';
+import '../widgets/GlobalGoBackButton.dart';
+import '../Pages/User_NOKList.dart';
+import '../Pages/User_SettingsProvider.dart';
 
 class ProtectorEditScreen extends StatefulWidget {
   const ProtectorEditScreen({super.key});
@@ -55,25 +56,7 @@ class _ProtectorEditScreenState extends State<ProtectorEditScreen> {
             ),
           ),
 
-          // go back 버튼
-          Positioned(
-            top: 40,
-            left: 30,
-            child: GestureDetector(
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => ProtectorListScreen()),
-                );
-                Provider.of<UserSettingsProvider>(context, listen: false).vibrate();
-              },
-              child: Icon(
-                Icons.arrow_back_ios,
-                color: Colors.black,
-                size: 30,
-              ),
-            ),
-          ),
+          GlobalGoBackButton(),
 
           // 제목
           Positioned(
@@ -131,26 +114,6 @@ class _ProtectorEditScreenState extends State<ProtectorEditScreen> {
               ],
             ),
           ),
-          // Positioned(
-          //   bottom: 30,
-          //   left: 20,
-          //   child: ElevatedButton(
-          //     onPressed: () {
-          //       // 음성인식 기능
-          //       Provider.of<UserSettingsProvider>(context, listen: false).vibrate();
-          //     },
-          //     style: ElevatedButton.styleFrom(
-          //       shape: CircleBorder(),
-          //       padding: EdgeInsets.all(12),
-          //       backgroundColor: Color(0xFFF8CB38),
-          //     ),
-          //     child: Icon(
-          //       Icons.settings_voice,
-          //       color: Colors.black,
-          //       size: 38,
-          //     ),
-          //   ),
-          // ),
           GlobalMicButton(
             onPressed: () {
               // 마이크 버튼 눌렀을 때 동작 정의
