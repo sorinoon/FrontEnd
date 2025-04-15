@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:flutter_screen_wake/flutter_screen_wake.dart';
+import 'package:screen_brightness/screen_brightness.dart';
 import '../Pages/User_SettingsProvider.dart';
 import '../Pages/NOK_SettingsProvider.dart';
 import '../Pages/LoginModeProvider.dart';
@@ -15,7 +15,7 @@ class GlobalGoBackButton extends StatelessWidget {
       top: 50,
       left: 40,
       child: GestureDetector(
-        onTap: () {
+        onTap: () async {
           final isProtectorMode = Provider.of<LoginModeProvider>(context, listen: false).isProtectorMode;
 
           if (isProtectorMode) {
@@ -24,7 +24,7 @@ class GlobalGoBackButton extends StatelessWidget {
             Provider.of<UserSettingsProvider>(context, listen: false).vibrate();
           }
           // 화면 밝기 복원
-          FlutterScreenWake.setBrightness(1.0);
+          await ScreenBrightness().setApplicationScreenBrightness(1.0);
 
           // 기존 페이지를 닫고 이전 화면으로 돌아가기
           if (Navigator.canPop(context)) {

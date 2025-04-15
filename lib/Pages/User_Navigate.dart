@@ -2,7 +2,7 @@ import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:provider/provider.dart';
-import 'package:flutter_screen_wake/flutter_screen_wake.dart';
+import 'package:screen_brightness/screen_brightness.dart';
 import '../widgets/GlobalMicButton.dart';
 import '../widgets/GlobalGoBackButton.dart';
 import '../Pages/User_SettingsProvider.dart';
@@ -22,17 +22,19 @@ class _PageNavigateState extends State<PageNavigate> with WidgetsBindingObserver
   @override
   void initState() {
     super.initState();
-
     WidgetsBinding.instance.addObserver(this);
-
-    final lowPowerProvider = Provider.of<UserSettingsProvider>(context, listen: false);
-    if (lowPowerProvider.isLowPowerModeEnabled) {
-      FlutterScreenWake.setBrightness(0.0); // 저전력 모드 시 화면 밝기 낮춤
-    }
-
+    setBrightness();
     initializeCamera();
   }
 
+  Future<void> setBrightness() async {
+    final lowPowerProvider = Provider.of<UserSettingsProvider>(context, listen: false);
+    final brightness = ScreenBrightness();
+
+    if (lowPowerProvider.isLowPowerModeEnabled) {
+      await brightness.setApplicationScreenBrightness(0.0);
+    }
+  }
   Future<void> initializeCamera() async {
     final status = await Permission.camera.request();
 
@@ -60,16 +62,20 @@ class _PageNavigateState extends State<PageNavigate> with WidgetsBindingObserver
 
   @override
   void dispose() {
-    FlutterScreenWake.setBrightness(1.0); // 카메라 화면 벗어나면 밝기 원래대로
+    _resetBrightness();
     WidgetsBinding.instance.removeObserver(this);
     _cameraController?.dispose();
     super.dispose();
   }
 
+  Future<void> _resetBrightness() async {
+    await ScreenBrightness().setApplicationScreenBrightness(1.0);
+  }
+
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.inactive || state == AppLifecycleState.paused) {
-      FlutterScreenWake.setBrightness(1.0); // 앱이 비활성화되면 밝기 복원
+      _resetBrightness(); // 앱이 비활성화되면 밝기 복원
     }
   }
 
