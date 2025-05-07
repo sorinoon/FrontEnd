@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:flutter_tts/flutter_tts.dart';
 import '../widgets/GlobalMicButton.dart';
 import '../widgets/GlobalGoBackButton.dart';
 import '../Pages/User_NOKList.dart';
@@ -42,6 +43,25 @@ class _ProtectorEditScreenState extends State<ProtectorEditScreen> {
     }
   }
 
+  late FlutterTts _flutterTts; // TTS 객체 선언
+
+  @override
+  void initState() {
+    super.initState();
+    _flutterTts = FlutterTts();
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    _flutterTts.stop(); // 앱 종료 시 TTS 멈추기
+  }
+
+  // TTS로 텍스트 읽기
+  Future<void> _speak(String text) async {
+    await _flutterTts.speak(text);
+  }
+
   @override
   Widget build(BuildContext context) {
     final fontSizeOffset = Provider.of<UserSettingsProvider>(context).fontSizeOffset;
@@ -64,12 +84,17 @@ class _ProtectorEditScreenState extends State<ProtectorEditScreen> {
             left: 0,
             right: 0,
             child: Center(
-              child: Text(
-                '보호자 목록',
-                style: TextStyle(
-                  fontSize: 25 + fontSizeOffset,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black,
+              child: GestureDetector(
+                onTap: () {
+                  _speak("보호자 목록 : 연락처 삭제");
+                },
+                child: Text(
+                  '보호자 목록',
+                  style: TextStyle(
+                    fontSize: 25 + fontSizeOffset,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black,
+                  ),
                 ),
               ),
             ),

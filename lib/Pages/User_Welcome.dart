@@ -1,14 +1,44 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:flutter_tts/flutter_tts.dart';
 import '../Pages/User_Home.dart';
 import '../Pages/User_SettingsProvider.dart';
 import '../Pages/User_NOKConnect.dart';
 import '../widgets/GlobalMicButton.dart';
 import '../widgets/GlobalGoBackButton.dart';
 
-
-class WelcomeScreen extends StatelessWidget {
+class WelcomeScreen extends StatefulWidget {
   const WelcomeScreen({Key? key}) : super(key: key);
+
+  @override
+  State<WelcomeScreen> createState() => _WelcomeScreenState();
+}
+
+class _WelcomeScreenState extends State<WelcomeScreen> {
+  final FlutterTts flutterTts = FlutterTts();
+
+  @override
+  void initState() {
+    super.initState();
+    _speakWelcomeMessage();
+  }
+
+  Future<void> _speakWelcomeMessage() async {
+    await flutterTts.setLanguage("ko-KR");
+    await flutterTts.setSpeechRate(0.5); // 말하는 속도
+    await flutterTts.speak(
+      '전준혁님 환영해요!'
+      '소리눈은 시각장애인을 위한 다양한 편의기능을 제공하는 앱입니다.'
+          '보호자 등록을 원한다면 6자리 고유번호나 QR 코드를 통해 등록할 수 있어요. '
+          '등록하지 않아도 사용 가능하니 편한 방식으로 진행하세요.',
+    );
+  }
+
+  @override
+  void dispose() {
+    flutterTts.stop(); // 페이지 나갈 때 TTS 중지
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {

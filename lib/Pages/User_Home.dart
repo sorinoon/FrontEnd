@@ -1,15 +1,40 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:flutter_tts/flutter_tts.dart';
 import '../Pages/CAM_Analyze.dart';
 import '../Pages/CAM_QR.dart';
 import '../Pages/User_Navigate.dart';
 import '../Pages/User_Setting.dart';
+import '../Pages/User_SettingsProvider.dart';
 import '../widgets/GlobalMicButton.dart';
 import '../widgets/GlobalGoBackButton.dart';
-import '../Pages/User_SettingsProvider.dart';
 
-class UserHomeScreen extends StatelessWidget {
+class UserHomeScreen extends StatefulWidget {
   const UserHomeScreen({super.key});
+
+  @override
+  _UserHomeScreenState createState() => _UserHomeScreenState();
+}
+
+class _UserHomeScreenState extends State<UserHomeScreen> {
+  late FlutterTts _flutterTts; // TTS 객체 선언
+
+  @override
+  void initState() {
+    super.initState();
+    _flutterTts = FlutterTts();
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    _flutterTts.stop(); // 앱 종료 시 TTS 멈추기
+  }
+
+  // TTS로 텍스트 읽기
+  Future<void> _speak(String text) async {
+    await _flutterTts.speak(text);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -38,6 +63,10 @@ class UserHomeScreen extends StatelessWidget {
                 icon: Icons.receipt_long,
                 label: '인식 모드',
                 onPressed: () {
+                  _speak("인식 모드"); // TTS로 읽어주기
+                  Provider.of<UserSettingsProvider>(context, listen: false).vibrate();
+                },
+                onDoubleTap: () {
                   // TODO: 인식 모드 페이지
                     Navigator.push(
                       context,
@@ -52,6 +81,10 @@ class UserHomeScreen extends StatelessWidget {
                 icon: Icons.settings,
                 label: '설정',
                 onPressed: () {
+                  _speak("설정");
+                  Provider.of<UserSettingsProvider>(context, listen: false).vibrate();
+                },
+                onDoubleTap: () {
                   Navigator.push(
                     context,
                     MaterialPageRoute(builder: (context) => UserSettingScreen()),
@@ -65,6 +98,10 @@ class UserHomeScreen extends StatelessWidget {
                 icon: Icons.navigation,
                 label: '안내 모드',
                 onPressed: () {
+                  _speak("안내 모드");
+                  Provider.of<UserSettingsProvider>(context, listen: false).vibrate();
+                },
+                onDoubleTap: () {
                   Navigator.push(
                     context,
                     MaterialPageRoute(builder: (context) => PageNavigate()),
@@ -93,6 +130,7 @@ class UserHomeScreen extends StatelessWidget {
     required IconData icon,
     required String label,
     required VoidCallback onPressed,
+    required VoidCallback onDoubleTap,
     required UserSettingsProvider userSettings,
   }) {
     return Center(
@@ -100,6 +138,9 @@ class UserHomeScreen extends StatelessWidget {
         onTap: () {
           userSettings.vibrate();
           onPressed();
+        },
+        onDoubleTap: () {
+          onDoubleTap();  // 더블 클릭 시 페이지 이동
         },
         child: Container(
           width: 170 + userSettings.fontSizeOffset * 4,

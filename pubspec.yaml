@@ -45,6 +45,9 @@ dependencies:
   cupertino_icons: ^1.0.8
   mobile_scanner: ^3.5.2
   screen_brightness: ^2.1.2
+  url_launcher: ^6.3.1
+  speech_to_text: ^7.0.0
+  flutter_tts: ^4.2.2
 
 dev_dependencies:
   flutter_test:

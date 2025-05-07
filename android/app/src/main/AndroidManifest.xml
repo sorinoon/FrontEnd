@@ -12,6 +12,9 @@
     <uses-permission android:name="android.permission.CAMERA"/>
     <uses-feature android:name="android.hardware.camera" android:required="true" />
 
+    <!-- 음성인식(stt) 권한 -->
+    <uses-permission android:name="android.permission.RECORD_AUDIO"/>
+
     <application
         android:label="sorinoon"
         android:name="${applicationName}"

@@ -6,6 +6,7 @@ import 'package:screen_brightness/screen_brightness.dart';
 import '../widgets/GlobalMicButton.dart';
 import '../widgets/GlobalGoBackButton.dart';
 import '../Pages/User_SettingsProvider.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class PageNavigate extends StatefulWidget {
   const PageNavigate({Key? key}) : super(key: key);
@@ -27,6 +28,25 @@ class _PageNavigateState extends State<PageNavigate> with WidgetsBindingObserver
     initializeCamera();
   }
 
+  void _callProtector() async {
+    // 추후에 사용자 목록 DB 연동 필요
+    final List<String> contactNotes = [
+      '010-1234-5678',
+      '010-1234-1234',
+      '010-5678-1234',
+      '010-5678-5678',
+    ];
+
+    final String phoneNumber = contactNotes[0]; // 가장 상단 번호
+    final Uri phoneUri = Uri(scheme: 'tel', path: phoneNumber);
+
+    if (await canLaunchUrl(phoneUri)) {
+      await launchUrl(phoneUri);
+    } else {
+      print('전화 앱을 실행할 수 없습니다.');
+    }
+  }
+  
   Future<void> setBrightness() async {
     final lowPowerProvider = Provider.of<UserSettingsProvider>(context, listen: false);
     final brightness = ScreenBrightness();
@@ -95,46 +115,52 @@ class _PageNavigateState extends State<PageNavigate> with WidgetsBindingObserver
           GlobalGoBackButton(),
 
           // ✅ 안내 모드 (중앙 상단)
-          SafeArea(
-            child: Align(
-              alignment: Alignment.topCenter,
-              child: Padding(
-                padding: const EdgeInsets.only(top: 16),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                  decoration: BoxDecoration(
-                    color: Colors.green,
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: const Text(
-                    '안내 모드',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                    ),
+          Positioned(
+            top: 60,
+            left: 0,
+            right: 0,
+            child: Center(
+              child: Container(
+                padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                decoration: BoxDecoration(
+                  color: Colors.green,
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Text(
+                  '안내 모드',
+                  style: TextStyle(
+                    fontSize: 20,
+                    color: Colors.black,
+                    fontWeight: FontWeight.bold,
                   ),
                 ),
               ),
             ),
           ),
 
-          // ✅ 통화 종료 버튼 (화면 하단 중앙)
+          // ✅ 통화 버튼 (화면 하단 중앙)
           SafeArea(
             child: Align(
               alignment: Alignment.bottomCenter,
               child: Padding(
                 padding: const EdgeInsets.only(bottom: 24),
-                child: Container(
-                  width: 65,
-                  height: 65,
-                  decoration: const BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: Colors.white,
-                  ),
-                  child: const Icon(
-                    Icons.call_end,
-                    color: Colors.red,
-                    size: 32,
+                child: GestureDetector(
+                  onTap: () {
+                    print("통화 버튼 클릭됨");
+                    _callProtector();         // 전화 기능 호출
+                  },
+                  child: Container(
+                    width: 80,
+                    height: 80,
+                    decoration: const BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: Colors.white,
+                    ),
+                    child: const Icon(
+                      Icons.call,
+                      color: Color(0xff24bd24),
+                      size: 45,
+                    ),
                   ),
                 ),
               ),

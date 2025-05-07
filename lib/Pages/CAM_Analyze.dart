@@ -61,7 +61,7 @@ class _Page_CameraAnalyzeState extends State<CameraAnalyzeScreen> {
 
           GlobalGoBackButton(),
 
-          // 상단 인식 모드 텍스트 (크기 증가)
+          // 상단 인식 모드 텍스트
           Positioned(
             top: 60,
             left: 0,
