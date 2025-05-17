@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Tmap Map</title>
+    <script src="https://apis.openapi.sk.com/tmap/js?version=1&appKey=huZN3mGcZh2sdd283mTHF8D4AVCBYOVB6v6umT6T"></script>
+    <style>
+        html, body, #map {
+          width: 100%;
+          height: 100%;
+          margin: 0;
+          padding: 0;
+        }
+    </style>
+</head>
+<body>
+<div id="map"></div>
+<script>
+    let map;
+
+    function initMap(startX, startY, endX, endY) {
+      map = new Tmapv2.Map("map", {
+        center: new Tmapv2.LatLng(startY, startX),
+        width: "100%",
+        height: "100%",
+        zoom: 15,
+      });
+
+      const headers = {
+        "Content-Type": "application/json",
+        appKey: "huZN3mGcZh2sdd283mTHF8D4AVCBYOVB6v6umT6T"
+      };
+
+      fetch("https://apis.openapi.sk.com/tmap/routes/pedestrian?version=1", {
+        method: "POST",
+        headers: headers,
+        body: JSON.stringify({
+          startX: startX.toString(),
+          startY: startY.toString(),
+          endX: endX.toString(),
+          endY: endY.toString(),
+          reqCoordType: "WGS84GEO",
+          resCoordType: "WGS84GEO",
+        }),
+      })
+      .then((res) => res.json())
+      .then((data) => {
+        const points = [];
+        data.features.forEach((feature) => {
+          const coords = feature.geometry.coordinates;
+          if (feature.geometry.type === "LineString") {
+            coords.forEach(([lon, lat]) =>
+              points.push(new Tmapv2.LatLng(lat, lon))
+            );
+          }
+        });
+
+        new Tmapv2.Polyline({
+          path: points,
+          strokeColor: "#FF0000",
+          strokeWeight: 6,
+          map: map,
+        });
+      });
+    }
+</script>
+</body>
+</html>
