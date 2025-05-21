@@ -13,6 +13,7 @@ import '../Pages/User_SettingsProvider.dart';
 import '../Pages/LoginModeProvider.dart';
 import 'dart:convert'; // ✅ 추가
 import 'package:shared_preferences/shared_preferences.dart';
+import '../Pages/User_Welcome.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -61,12 +62,11 @@ class _LoginScreenState extends State<LoginScreen> {
       if (response.statusCode == 200) {
         print("로그인 성공! 응답: ${response.body}");
 
-        // ✅ JWT 저장
         final prefs = await SharedPreferences.getInstance();
         final responseData = json.decode(response.body);
         await Future.delayed(Duration(milliseconds: 100));
 
-        final token = responseData['jwt']; // 서버가 이렇게 리턴한다고 가정
+        final token = responseData['jwt'];
         if (token != null) {
           await prefs.setString('jwt_token', token);
           print('✅ JWT 저장 성공');
@@ -76,11 +76,20 @@ class _LoginScreenState extends State<LoginScreen> {
           print('✅ Email 저장 성공: ${responseData['email']}');
         }
 
-        // 로그인 성공 후 화면 이동
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => NOKHomeScreen()),
-        );
+        // ✅ 로그인 모드에 따라 분기
+        final loginMode = Provider.of<LoginModeProvider>(context, listen: false);
+
+        if (loginMode.isProtectorMode) {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => NOKHomeScreen()),
+          );
+        } else {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => WelcomeScreen()), // ✅ 사용자용 Welcome
+          );
+        }
       } else {
         print("로그인 실패: ${response.statusCode}");
       }
@@ -90,21 +99,48 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
 
+
   void _signInWithKakao() {
+    _isCodeHandled = false; // ✅ 중복 방지 플래그 초기화
+
+    final loginUrl = Uri.parse('http://10.0.2.2:8080/login/page?ts=${DateTime.now().millisecondsSinceEpoch}');
+
+    final webViewController = WebViewController()
+      ..setJavaScriptMode(JavaScriptMode.unrestricted)
+      ..setNavigationDelegate(
+        NavigationDelegate(
+          onNavigationRequest: (NavigationRequest request) {
+            if (!_isCodeHandled && request.url.contains("code=")) {
+              _isCodeHandled = true;
+              final Uri uri = Uri.parse(request.url);
+              final String? code = uri.queryParameters['code'];
+              if (code != null) {
+                _sendCodeToServer(code);
+              }
+              Navigator.of(context).pop();
+              return NavigationDecision.prevent;
+            }
+            return NavigationDecision.navigate;
+          },
+        ),
+      )
+      ..loadRequest(loginUrl); // ✅ 여기에서 깔끔하게 사용
+
     Navigator.push(
       context,
       MaterialPageRoute(
         builder: (context) => Scaffold(
           body: SafeArea(
-          child: WebViewWidget(
-            controller: _webViewController
-              ..loadRequest(Uri.parse('http://10.0.2.2:8080/login/page')),
-          ),
+            child: WebViewWidget(
+              controller: webViewController,
+            ),
           ),
         ),
       ),
     );
   }
+
+
 
   @override
   Widget build(BuildContext context) {
@@ -180,21 +216,16 @@ class _LoginScreenState extends State<LoginScreen> {
                     border: Border.all(color: Color(0xffe2e2e2), width: 1),
                   ),
                   child: TextButton(
-                    onPressed:() {
+                    onPressed: () {
                       if (loginMode.isProtectorMode) {
-                        final provider = Provider.of<NOKSettingsProvider>(context, listen: false);
+                        final NOKSettingsProvider provider = Provider.of<NOKSettingsProvider>(context, listen: false);
                         provider.vibrate();
-                        // 보호자용 페이지로 이동
-                            _signInWithKakao();// 카카오 로그인 버튼 클릭 시 처리
+                        _signInWithKakao();
                       } else {
-                        final provider = Provider.of<UserSettingsProvider>(context, listen: false);
+                        final UserSettingsProvider provider = Provider.of<UserSettingsProvider>(context, listen: false);
                         provider.vibrate();
-                        // 사용자용 페이지로 이동
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (context) => WelcomeScreen()),
-                        );
-                      }
+                        _signInWithKakao();
+                      } // ✅ 보호자든 사용자든 카카오 로그인 실행
                     },
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,

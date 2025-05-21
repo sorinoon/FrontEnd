@@ -3,12 +3,16 @@ import 'package:flutter/cupertino.dart';
 import 'package:provider/provider.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
+import '../Pages/Shared_Preferences.dart' as MyPrefs;
+
 import 'dart:convert';
 
 import '../widgets/GlobalGoBackButton.dart';
 import '../Pages/NOK_SettingsProvider.dart';
 import '../Pages/Login.dart';
 import '../Pages/Shared_Preferences.dart';
+import 'package:kakao_flutter_sdk_user/kakao_flutter_sdk_user.dart';
+import 'package:webview_flutter/webview_flutter.dart';
 
 class NOKSettingScreen extends StatefulWidget {
   const NOKSettingScreen({super.key});
@@ -63,10 +67,19 @@ class _NOKSettingScreen extends State<NOKSettingScreen> {
       });
     }
   }
+  Future<void> _logoutKakao() async {
+    try {
+      await UserApi.instance.logout();
+      print('✅ 카카오 로그아웃 성공');
+    } catch (e) {
+      print('⚠️ 카카오 로그아웃 실패 (무시해도 됨): $e');
+    }
+  }
 
   Future<void> _logoutAndRedirectToLogin() async {
-    await TokenManager.deleteToken();
-    await Future.delayed(Duration(milliseconds: 300));
+    await _logoutKakao(); // 실패해도 괜찮음
+    await WebViewCookieManager().clearCookies(); // ✅ WebView 쿠키 초기화
+    await MyPrefs.TokenManager.deleteToken(); // ✅ JWT 삭제
 
     Navigator.pushAndRemoveUntil(
       context,
@@ -74,6 +87,7 @@ class _NOKSettingScreen extends State<NOKSettingScreen> {
           (route) => false,
     );
   }
+
 
   @override
   Widget build(BuildContext context) {

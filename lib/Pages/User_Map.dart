@@ -71,8 +71,7 @@ class _UserMapPageState extends State<UserMapPage> {
     final controller = WebViewController()
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
       ..loadFlutterAsset('assets/tmap_map.html')
-      ..runJavaScript(
-          "initMap($startX, $startY, $endX, $endY);"); // ✅ JS 함수 호출
+      ..runJavaScript("initMap($startX, $startY, $endX, $endY);"); // ✅ JS 함수 호출
 
     Navigator.push(
       context,
