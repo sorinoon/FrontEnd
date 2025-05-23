@@ -71,39 +71,15 @@ class _UserMapPageState extends State<UserMapPage> {
     final controller = WebViewController()
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
       ..loadFlutterAsset('assets/tmap_map.html')
-      ..runJavaScript("initMap($startX, $startY, $endX, $endY);"); // ✅ JS 함수 호출
+      ..runJavaScript("initMap($startX, $startY, $endX, $endY);");
 
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (_) => Scaffold(
-          body: Stack(
-            children: [
-              WebViewWidget(controller: controller), // ✅ WebView 표시
-              // ✅ 5초 후 자동 이동
-              Positioned.fill(
-                child: FutureBuilder(
-                  future: Future.delayed(Duration(seconds: 5)),
-                  builder: (context, snapshot) {
-                    if (snapshot.connectionState == ConnectionState.done) {
-                      WidgetsBinding.instance.addPostFrameCallback((_) {
-                        Navigator.pushReplacement(
-                          context,
-                          MaterialPageRoute(builder: (_) => const PageNavigate()),
-                        );
-                      });
-                    }
-                    return const SizedBox.shrink();
-                  },
-                ),
-              )
-            ],
-          ),
-        ),
+        builder: (_) => _FullMapScreen(controller: controller),
       ),
     );
   }
-
 
 
   Future<Map<String, double>?> _getCoordinates(String address) async {
@@ -219,3 +195,34 @@ class _UserMapPageState extends State<UserMapPage> {
     );
   }
 }
+
+class _FullMapScreen extends StatefulWidget {
+  final WebViewController controller;
+  const _FullMapScreen({required this.controller});
+
+  @override
+  State<_FullMapScreen> createState() => _FullMapScreenState();
+}
+
+class _FullMapScreenState extends State<_FullMapScreen> {
+  @override
+  void initState() {
+    super.initState();
+    Future.delayed(Duration(seconds: 10), () {
+      if (mounted) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => const PageNavigate()),
+        );
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: WebViewWidget(controller: widget.controller),
+    );
+  }
+}
+
