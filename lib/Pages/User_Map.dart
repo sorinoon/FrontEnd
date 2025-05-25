@@ -1,228 +1,121 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
-import 'package:webview_flutter/webview_flutter.dart';
-import 'User_Navigate.dart';
 
 class UserMapPage extends StatefulWidget {
-  const UserMapPage({Key? key}) : super(key: key);
+  const UserMapPage({super.key});
 
   @override
   State<UserMapPage> createState() => _UserMapPageState();
 }
 
 class _UserMapPageState extends State<UserMapPage> {
-  final TextEditingController _startController = TextEditingController();
-  final TextEditingController _endController = TextEditingController();
+  static const platform = MethodChannel('tmap_channel');
 
-  String? _timeText;
-  String? _distanceText;
+  final _startController = TextEditingController();
+  final _endController = TextEditingController();
+  final String _appKey = 'huZN3mGcZh2sdd283mTHF8D4AVCBYOVB6v6umT6T'; // ← 실제 API 키로 변경
 
-  final String _appKey = 'huZN3mGcZh2sdd283mTHF8D4AVCBYOVB6v6umT6T';
+  String? _resultText;
 
-  @override
-  void dispose() {
-    _startController.dispose();
-    _endController.dispose();
-    super.dispose();
+  Future<Map<String, double>?> _getCoordinates(String address) async {
+    final encoded = Uri.encodeComponent(address);
+    final url = Uri.parse(
+        'https://apis.openapi.sk.com/tmap/pois?version=1&searchKeyword=$encoded&resCoordType=WGS84GEO&reqCoordType=WGS84GEO');
+
+    final response = await http.get(url, headers: {'appKey': _appKey});
+    final data = jsonDecode(response.body);
+    final pois = data['searchPoiInfo']?['pois']?['poi'];
+
+    if (pois != null && pois.isNotEmpty) {
+      final poi = pois[0];
+      return {
+        'lat': double.parse(poi['frontLat']),
+        'lon': double.parse(poi['frontLon']),
+      };
+    }
+    return null;
   }
 
-  void _onSearchPressed() async {
-    final start = _startController.text;
-    final end = _endController.text;
+  Future<void> _onSearchPressed() async {
+    final start = _startController.text.trim();
+    final end = _endController.text.trim();
 
     if (start.isEmpty || end.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("출발지와 도착지를 모두 입력하세요.")),
+        const SnackBar(content: Text('출발지와 도착지를 모두 입력하세요')),
       );
       return;
     }
 
-    // 1. 주소 → 좌표 변환
     final startCoord = await _getCoordinates(start);
     final endCoord = await _getCoordinates(end);
 
     if (startCoord == null || endCoord == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("주소를 좌표로 변환할 수 없습니다.")),
+        const SnackBar(content: Text('좌표 변환 실패')),
       );
       return;
     }
 
-    // 2. 도보 경로 요청
-    final route = await _getPedestrianRoute(startCoord, endCoord);
-    if (route != null) {
-      setState(() {
-        _timeText = "${route['time']}분";
-        _distanceText = "${route['distance']}km";
+    try {
+      final result = await platform.invokeMethod('drawRoute', {
+        'startLat': startCoord['lat'],
+        'startLon': startCoord['lon'],
+        'endLat': endCoord['lat'],
+        'endLon': endCoord['lon'],
       });
 
-      // ✅ 지도 페이지 열기
-      _openMapInWebView(
-        startCoord['lon']!,
-        startCoord['lat']!,
-        endCoord['lon']!,
-        endCoord['lat']!,
-      );
-    }
-  }
-
-  void _openMapInWebView(double startX, double startY, double endX, double endY) {
-    final controller = WebViewController()
-      ..setJavaScriptMode(JavaScriptMode.unrestricted)
-      ..loadFlutterAsset('assets/tmap_map.html')
-      ..runJavaScript("initMap($startX, $startY, $endX, $endY);");
-
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => _FullMapScreen(controller: controller),
-      ),
-    );
-  }
-
-
-  Future<Map<String, double>?> _getCoordinates(String address) async {
-    final encodedKeyword = Uri.encodeComponent(address);
-    final url = Uri.parse(
-        'https://apis.openapi.sk.com/tmap/pois?version=1&searchKeyword=$encodedKeyword&resCoordType=WGS84GEO&reqCoordType=WGS84GEO');
-
-    final response = await http.get(
-      url,
-      headers: {'appKey': _appKey},
-    );
-
-    print("🔍 API URL: $url");
-    print("📦 응답: ${response.body}");
-
-    if (response.statusCode == 200) {
-      final data = jsonDecode(response.body);
-      final pois = data['searchPoiInfo']?['pois']?['poi'];
-
-      if (pois != null && pois.isNotEmpty) {
-        final first = pois[0];
-        return {
-          'lat': double.parse(first['frontLat']),
-          'lon': double.parse(first['frontLon']),
-        };
-      }
-    }
-    return null;
-  }
-
-
-  Future<Map<String, dynamic>?> _getPedestrianRoute(
-      Map<String, double> start, Map<String, double> end) async {
-    final url = Uri.parse(
-        'https://apis.openapi.sk.com/tmap/routes/pedestrian?version=1');
-
-    final body = {
-      "startX": start['lon'].toString(),
-      "startY": start['lat'].toString(),
-      "endX": end['lon'].toString(),
-      "endY": end['lat'].toString(),
-      "reqCoordType": "WGS84GEO",
-      "resCoordType": "WGS84GEO",
-    };
-
-    final response = await http.post(
-      url,
-      headers: {
-        'Content-Type': 'application/json',
-        'appKey': _appKey,
-      },
-      body: jsonEncode(body),
-    );
-
-    if (response.statusCode == 200) {
-      final data = jsonDecode(response.body);
-      final prop = data['features'][0]['properties'];
-      final timeMin = (prop['totalTime'] / 60).round();
-      final distanceKm = (prop['totalDistance'] / 1000).toStringAsFixed(2);
-
-      return {
-        'time': timeMin,
-        'distance': distanceKm,
-      };
-    } else {
-      print("경로 요청 실패: ${response.statusCode}");
-      return null;
+      setState(() {
+        _resultText = result; // 네이티브에서 전달받은 시간/거리 정보
+      });
+    } catch (e) {
+      print('❌ 네이티브 호출 오류: $e');
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text("길찾기 설정")),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children: [
-            TextField(
-              controller: _startController,
-              decoration: InputDecoration(
-                labelText: "출발지",
-                prefixIcon: Icon(Icons.location_on),
-                border: OutlineInputBorder(),
-              ),
+      appBar: AppBar(title: const Text('Tmap 경로 안내')),
+      body: Column(
+        children: [
+          Expanded(
+            flex: 2,
+            child: AndroidView(
+              viewType: 'TMapNativeView',
+              layoutDirection: TextDirection.ltr,
+              creationParams: {},
+              creationParamsCodec: const StandardMessageCodec(),
             ),
-            SizedBox(height: 12),
-            TextField(
-              controller: _endController,
-              decoration: InputDecoration(
-                labelText: "도착지",
-                prefixIcon: Icon(Icons.flag),
-                border: OutlineInputBorder(),
-              ),
+          ),
+          Expanded(
+            flex: 1,
+            child: Column(
+              children: [
+                TextField(
+                  controller: _startController,
+                  decoration: const InputDecoration(labelText: '출발지 입력'),
+                ),
+                TextField(
+                  controller: _endController,
+                  decoration: const InputDecoration(labelText: '도착지 입력'),
+                ),
+                ElevatedButton(
+                  onPressed: _onSearchPressed,
+                  child: const Text('경로 요청'),
+                ),
+                if (_resultText != null)
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Text(_resultText!),
+                  ),
+              ],
             ),
-            SizedBox(height: 20),
-            ElevatedButton.icon(
-              onPressed: _onSearchPressed,
-              icon: Icon(Icons.search),
-              label: Text("경로 검색"),
-            ),
-            SizedBox(height: 20),
-            if (_timeText != null && _distanceText != null)
-              Column(
-                children: [
-                  Text("예상 소요 시간: $_timeText", style: TextStyle(fontSize: 18)),
-                  Text("예상 거리: $_distanceText", style: TextStyle(fontSize: 18)),
-                ],
-              )
-          ],
-        ),
+          )
+        ],
       ),
     );
   }
 }
-
-class _FullMapScreen extends StatefulWidget {
-  final WebViewController controller;
-  const _FullMapScreen({required this.controller});
-
-  @override
-  State<_FullMapScreen> createState() => _FullMapScreenState();
-}
-
-class _FullMapScreenState extends State<_FullMapScreen> {
-  @override
-  void initState() {
-    super.initState();
-    Future.delayed(Duration(seconds: 10), () {
-      if (mounted) {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (_) => const PageNavigate()),
-        );
-      }
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: WebViewWidget(controller: widget.controller),
-    );
-  }
-}
-
