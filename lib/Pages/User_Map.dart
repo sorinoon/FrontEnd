@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
+import 'package:flutter_tts/flutter_tts.dart';
 
 class UserMapPage extends StatefulWidget {
   const UserMapPage({super.key});
@@ -15,14 +16,23 @@ class _UserMapPageState extends State<UserMapPage> {
 
   final _startController = TextEditingController();
   final _endController = TextEditingController();
-  final String _appKey = 'huZN3mGcZh2sdd283mTHF8D4AVCBYOVB6v6umT6T'; // ← 실제 API 키로 변경
+  final String _appKey = 'huZN3mGcZh2sdd283mTHF8D4AVCBYOVB6v6umT6T';
 
-  String? _resultText;
+  final FlutterTts flutterTts = FlutterTts();
+
+  String? _routeTimeText; // 도보 예상 시간 저장용
+
+  Future<void> _speak(String? text) async {
+    if (text != null && text.isNotEmpty) {
+      await flutterTts.speak(text);
+    }
+  }
 
   Future<Map<String, double>?> _getCoordinates(String address) async {
     final encoded = Uri.encodeComponent(address);
     final url = Uri.parse(
-        'https://apis.openapi.sk.com/tmap/pois?version=1&searchKeyword=$encoded&resCoordType=WGS84GEO&reqCoordType=WGS84GEO');
+      'https://apis.openapi.sk.com/tmap/pois?version=1&searchKeyword=$encoded&resCoordType=WGS84GEO&reqCoordType=WGS84GEO',
+    );
 
     final response = await http.get(url, headers: {'appKey': _appKey});
     final data = jsonDecode(response.body);
@@ -60,19 +70,29 @@ class _UserMapPageState extends State<UserMapPage> {
     }
 
     try {
-      final result = await platform.invokeMethod('drawRoute', {
+      await platform.invokeMethod('drawRoute', {
         'startLat': startCoord['lat'],
         'startLon': startCoord['lon'],
         'endLat': endCoord['lat'],
         'endLon': endCoord['lon'],
       });
-
-      setState(() {
-        _resultText = result; // 네이티브에서 전달받은 시간/거리 정보
-      });
     } catch (e) {
       print('❌ 네이티브 호출 오류: $e');
     }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    platform.setMethodCallHandler((call) async {
+      if (call.method == "routeResult") {
+        final result = call.arguments.toString(); // 예: "도보 예상 시간: 92분"
+        setState(() {
+          _routeTimeText = result;
+        });
+        await _speak(result); // 음성 출력
+      }
+    });
   }
 
   @override
@@ -106,14 +126,17 @@ class _UserMapPageState extends State<UserMapPage> {
                   onPressed: _onSearchPressed,
                   child: const Text('경로 요청'),
                 ),
-                if (_resultText != null)
+                if (_routeTimeText != null)
                   Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Text(_resultText!),
+                    padding: const EdgeInsets.symmetric(vertical: 8.0),
+                    child: Text(
+                      _routeTimeText!,
+                      style: const TextStyle(fontSize: 20),
+                    ),
                   ),
               ],
             ),
-          )
+          ),
         ],
       ),
     );
