@@ -11,9 +11,9 @@ import '../Pages/NOK_Home.dart';
 import '../Pages/NOK_SettingsProvider.dart';
 import '../Pages/User_SettingsProvider.dart';
 import '../Pages/LoginModeProvider.dart';
-import 'dart:convert'; // ✅ 추가
+import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../Pages/User_Welcome.dart';
+import 'package:flutter_tts/flutter_tts.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -25,8 +25,8 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   bool isToggled = false;
   late final WebViewController _webViewController;
-
-  bool _isCodeHandled = false; // ✅ 중복 요청 방지용
+  bool _isCodeHandled = false;
+  final FlutterTts tts = FlutterTts();
 
   @override
   void initState() {
@@ -37,31 +37,35 @@ class _LoginScreenState extends State<LoginScreen> {
         NavigationDelegate(
           onNavigationRequest: (NavigationRequest request) {
             if (!_isCodeHandled && request.url.contains("code=")) {
-              _isCodeHandled = true; // ✅ 한 번만 처리
+              _isCodeHandled = true;
               final Uri uri = Uri.parse(request.url);
               final String? code = uri.queryParameters['code'];
               if (code != null) {
                 _sendCodeToServer(code);
               }
-              Navigator.of(context).pop(); // ✅ WebView 닫기
-              return NavigationDecision.prevent; // ✅ WebView가 로딩하지 않도록 차단
+              Navigator.of(context).pop();
+              return NavigationDecision.prevent;
             }
             return NavigationDecision.navigate;
           },
         ),
       );
+
+    _speakWelcome();
   }
 
+  Future<void> _speakWelcome() async {
+    await tts.setLanguage("ko-KR");
+    await tts.setSpeechRate(0.5);
+  }
 
   Future<void> _sendCodeToServer(String code) async {
     try {
       final response = await http.get(
-        Uri.parse('http://10.0.2.2:8080/callback?code=$code'),
+        Uri.parse('http://223.194.130.247:8080/callback?code=$code'),
       );
 
       if (response.statusCode == 200) {
-        print("로그인 성공! 응답: ${response.body}");
-
         final prefs = await SharedPreferences.getInstance();
         final responseData = json.decode(response.body);
         await Future.delayed(Duration(milliseconds: 100));
@@ -69,26 +73,16 @@ class _LoginScreenState extends State<LoginScreen> {
         final token = responseData['jwt'];
         if (token != null) {
           await prefs.setString('jwt_token', token);
-          print('✅ JWT 저장 성공');
         }
         if (responseData['email'] != null) {
           await prefs.setString('email', responseData['email']);
-          print('✅ Email 저장 성공: ${responseData['email']}');
         }
 
-        // ✅ 로그인 모드에 따라 분기
         final loginMode = Provider.of<LoginModeProvider>(context, listen: false);
-
         if (loginMode.isProtectorMode) {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (context) => NOKHomeScreen()),
-          );
+          Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => NOKHomeScreen()));
         } else {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (context) => WelcomeScreen()), // ✅ 사용자용 Welcome
-          );
+          Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => WelcomeScreen()));
         }
       } else {
         print("로그인 실패: ${response.statusCode}");
@@ -98,11 +92,8 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
-
-
   void _signInWithKakao() {
-    _isCodeHandled = false; // ✅ 중복 방지 플래그 초기화
-
+    _isCodeHandled = false;
     final loginUrl = Uri.parse('http://10.0.2.2:8080/login/page?ts=${DateTime.now().millisecondsSinceEpoch}');
 
     final webViewController = WebViewController()
@@ -124,23 +115,17 @@ class _LoginScreenState extends State<LoginScreen> {
           },
         ),
       )
-      ..loadRequest(loginUrl); // ✅ 여기에서 깔끔하게 사용
+      ..loadRequest(loginUrl);
 
     Navigator.push(
       context,
       MaterialPageRoute(
         builder: (context) => Scaffold(
-          body: SafeArea(
-            child: WebViewWidget(
-              controller: webViewController,
-            ),
-          ),
+          body: SafeArea(child: WebViewWidget(controller: webViewController)),
         ),
       ),
     );
   }
-
-
 
   @override
   Widget build(BuildContext context) {
@@ -153,11 +138,7 @@ class _LoginScreenState extends State<LoginScreen> {
         : userSettings.fontSizeOffset;
 
     void vibrate() {
-      if (loginMode.isProtectorMode) {
-        protectorSettings.vibrate();
-      } else {
-        userSettings.vibrate();
-      }
+      loginMode.isProtectorMode ? protectorSettings.vibrate() : userSettings.vibrate();
     }
 
     return Scaffold(
@@ -167,7 +148,7 @@ class _LoginScreenState extends State<LoginScreen> {
             child: Image.asset('assets/images/background_image.jpg', fit: BoxFit.cover),
           ),
           Positioned(
-            top: 230 - fontSizeOffset * 4,
+            top: 210 - fontSizeOffset * 4,
             left: 0,
             right: 0,
             child: Center(
@@ -175,121 +156,128 @@ class _LoginScreenState extends State<LoginScreen> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Container(
-                    width: 120,
-                    height: 120,
+                    width: 170,
+                    height: 170,
                     decoration: BoxDecoration(
-                      color: loginMode.isProtectorMode ? Color(0xff80C5A4) : Color(0xffF8CB38), // 네모 박스 색상
                       borderRadius: BorderRadius.circular(40),
-                    ),
-                    child: Center(
-                      child: Icon(
-                        Icons.image, // 로고 대체
-                        color: Colors.white,
-                        size: 40 + fontSizeOffset,
+                      image: DecorationImage(
+                        image: AssetImage(
+                          loginMode.isProtectorMode
+                              ? 'assets/images/logo_g.png'
+                              : 'assets/images/logo_y.png',
+                        ),
                       ),
                     ),
                   ),
-                  SizedBox(height: 5),
-                  Text(
+                  SizedBox(height: 3),
+                  /*Text(
                     '소리눈',
                     style: TextStyle(
                       fontSize: 40 + fontSizeOffset,
                       fontWeight: FontWeight.bold,
                       color: loginMode.isProtectorMode ? Color(0xff80C5A4) : Color(0xffF8CB38),
                     ),
-                  ),
+                  ),*/
                 ],
               ),
             ),
           ),
-          Positioned.fill(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                SizedBox(height: 450 - fontSizeOffset * 5), // 로고와 버튼 간격 조정
-                Container(
-                  width: 307 + fontSizeOffset * 10,
-                  height: 57 + fontSizeOffset * 2,
-                  decoration: BoxDecoration(
-                    color: Color(0xFFFFE726),
-                    borderRadius: BorderRadius.circular(50),
-                    border: Border.all(color: Color(0xffe2e2e2), width: 1),
-                  ),
-                  child: TextButton(
-                    onPressed: () {
-                      if (loginMode.isProtectorMode) {
-                        final NOKSettingsProvider provider = Provider.of<NOKSettingsProvider>(context, listen: false);
-                        provider.vibrate();
-                        _signInWithKakao();
-                      } else {
-                        final UserSettingsProvider provider = Provider.of<UserSettingsProvider>(context, listen: false);
-                        provider.vibrate();
-                        _signInWithKakao();
-                      } // ✅ 보호자든 사용자든 카카오 로그인 실행
-                    },
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Image.asset('assets/images/kakao_logo.jpg', width: 46, height: 37),
-                        SizedBox(width: 2),
-                        Text(
-                          '카카오로 3초만에 시작하기',
-                          style: TextStyle(
-                            color: Color(0xff4D3033),
-                            fontWeight: FontWeight.bold,
-                            fontSize: 18 + fontSizeOffset,
-                          ),
+          // 카카오 로그인 버튼
+          Positioned(
+            top: 550,
+            left: 0,
+            right: 0,
+            child: Center(
+              child: Container(
+                width: 308 + fontSizeOffset * 10,
+                height: 57 + fontSizeOffset * 2,
+                decoration: BoxDecoration(
+                  color: Color(0xFFFFE726),
+                  borderRadius: BorderRadius.circular(50),
+                  border: Border.all(color: Color(0xffe2e2e2), width: 1),
+                ),
+                child: TextButton(
+                  onPressed: () {
+                    if (loginMode.isProtectorMode) {
+                      final provider = Provider.of<NOKSettingsProvider>(context, listen: false);
+                      provider.vibrate();
+                      _signInWithKakao();
+                    } else {
+                      final provider = Provider.of<UserSettingsProvider>(context, listen: false);
+                      provider.vibrate();
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => WelcomeScreen()),
+                      );
+                    }
+                  },
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Image.asset('assets/images/kakao_logo.jpg', width: 46, height: 37),
+                      SizedBox(width: 2),
+                      Text(
+                        '카카오로 3초만에 시작하기',
+                        style: TextStyle(
+                          color: Color(0xff4D3033),
+                          fontWeight: FontWeight.bold,
+                          fontSize: 18 + fontSizeOffset/2,
                         ),
-                      ],
-                    ),
-                  ),
-                ),
-                SizedBox(height: 20),
-                Container(
-                  width: 307 + fontSizeOffset * 10,
-                  height: 57 + fontSizeOffset * 2,
-                  decoration: BoxDecoration(
-                    color: Color(0xffffffff),
-                    borderRadius: BorderRadius.circular(50),
-                    border: Border.all(color: Colors.black, width: 1),
-                  ),
-                  child: TextButton(
-                    onPressed: () {
-                      if (loginMode.isProtectorMode) {
-                        final provider = Provider.of<NOKSettingsProvider>(context, listen: false);
-                        provider.vibrate();
-                        // 보호자용 페이지로 이동
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (context) => NOKHomeScreen()),
-                        );
-                      } else {
-                        final provider = Provider.of<UserSettingsProvider>(context, listen: false);
-                        provider.vibrate();
-                        // 사용자용 페이지로 이동
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (_) => const UserHomeScreen()),
-                        );
-                      }
-
-                      print("둘러보기 버튼");
-                    },
-                    child: Text(
-                      '어플 둘러보기',
-                      style: TextStyle(
-                        color: Colors.black,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 18 + fontSizeOffset,
                       ),
-                    ),
+                    ],
                   ),
                 ),
-              ],
+              ),
             ),
           ),
+
+          // 테스트에서 로그인 하지 않으면 홈으로 들어갈 방법이 없어 임시로 둠.. 최종에서는 positioned 묶음 그대로 지우면 됨
           Positioned(
-            top: 800,
+            bottom: 20,
+            left: 0,
+            right: 0,
+            child: Center(
+              child: Container(
+                width: 307 + fontSizeOffset * 10,
+                height: 57 + fontSizeOffset * 2,
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(50),
+                  border: Border.all(color: Colors.black, width: 1),
+                ),
+                child: TextButton(
+                  onPressed: () {
+                    if (loginMode.isProtectorMode) {
+                      final provider = Provider.of<NOKSettingsProvider>(context, listen: false);
+                      provider.vibrate();
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => NOKHomeScreen()),
+                      );
+                    } else {
+                      final provider = Provider.of<UserSettingsProvider>(context, listen: false);
+                      provider.vibrate();
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => UserHomeScreen()),
+                      );
+                    }
+                  },
+                  child: Text(
+                    '홈화면 이동 테스트용',
+                    style: TextStyle(
+                      color: Colors.black,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 18 + fontSizeOffset,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+
+          Positioned(
+            top: 630,
             left: 0,
             right: 0,
             child: Center(

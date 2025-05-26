@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:sorinoon/Pages/Login.dart';
+import 'Pages/Login.dart';
 import 'Pages/User_SettingsProvider.dart';
 import 'Pages/NOK_SettingsProvider.dart';
 import 'Pages/LoginModeProvider.dart';
 import 'package:kakao_flutter_sdk_user/kakao_flutter_sdk_user.dart';
-import '../Pages/User_Navigate.dart';
+import 'Pages/User_Navigate.dart';
+import 'Pages/Splash.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized(); // Flutter 엔진 초기화
@@ -36,7 +37,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         fontFamily: 'KoddiUDOnGothic', // 전역 폰트 설정
       ),
-      home: LoginScreen(),
+      home: SplashScreen(),
     );
   }
 }

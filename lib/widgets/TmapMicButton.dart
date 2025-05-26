@@ -3,27 +3,26 @@ import 'dart:collection';
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../Pages/User_Map.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
 import 'package:flutter_tts/flutter_tts.dart';
-import '../Pages/User_SettingsProvider.dart';
-import '../Pages/CAM_Analyze.dart';
-import '../Pages/User_Home.dart';
-import '../Pages/User_Setting.dart';
-import '../Pages/User_NOKConnect.dart';
-import '../Pages/User_NOKList.dart';
 import 'package:lottie/lottie.dart';
+import '../Pages/User_SettingsProvider.dart';
 
-class GlobalMicButton extends StatefulWidget {
+class TmapMicButton extends StatefulWidget {
   final VoidCallback onPressed;
+  final Future<bool> Function(String command, FlutterTts tts, BuildContext context)? customCommandHandler;
 
-  const GlobalMicButton({super.key, required this.onPressed});
+  const TmapMicButton({
+    super.key,
+    required this.onPressed,
+    this.customCommandHandler,
+  });
 
   @override
-  State<GlobalMicButton> createState() => _GlobalMicButtonState();
+  State<TmapMicButton> createState() => _TmapMicButtonState();
 }
 
-class _GlobalMicButtonState extends State<GlobalMicButton> {
+class _TmapMicButtonState extends State<TmapMicButton> {
   late stt.SpeechToText _speech;
   late FlutterTts _flutterTts;
   bool _isListening = false;
@@ -46,7 +45,6 @@ class _GlobalMicButtonState extends State<GlobalMicButton> {
   }
 
   Future<void> _speak(String text) async {
-    print("🗣️ 말하기: $text");
     await _speech.stop();
     await _flutterTts.speak(text);
   }
@@ -71,8 +69,6 @@ class _GlobalMicButtonState extends State<GlobalMicButton> {
         partialResults: false,
         onResult: (result) {
           final command = result.recognizedWords.trim().toLowerCase();
-          print("🎧 최종 명령어: $command");
-
           if (command.isNotEmpty && command != _lastCommand) {
             _lastCommand = command;
             _commandQueue.add(command);
@@ -95,61 +91,21 @@ class _GlobalMicButtonState extends State<GlobalMicButton> {
     _isListening = false;
     _shouldContinueListening = false;
 
-    print("⚙️ 처리 중: $command");
+    print("⚙️ 처리 중 (TmapMicButton): $command");
 
-    Future<void> navigate(Widget page, String message) async {
-      if (!mounted) return;
-      await _speak(message);
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (_) => page),
-      );
+    bool handled = false;
+
+    if (widget.customCommandHandler != null) {
+      handled = await widget.customCommandHandler!(command, _flutterTts, context);
     }
 
-    if (command.contains('설정')) {
-      await navigate(UserSettingScreen(), "설정 페이지로 이동할게요");
-    } else if (command.contains('안내')) {
-      await navigate(UserMapPage(), "소리눈 네비게이션으로 이동할게요");
-    } else if (command.contains('인식')) {
-      await navigate(CameraAnalyzeScreen(), "소리눈 문서 인식으로 이동할게요");
-    } else if (command.contains('홈') || command.contains('메인')) {
-      await navigate(UserHomeScreen(), "메인 홈으로 이동할게요");
-    } else if (command.contains('등록')) {
-      await navigate(NOKConnectScreen(), "보호자 등록 페이지로 이동할게요");
-    } else if (command.contains('목록')) {
-      await navigate(ProtectorListScreen(), "보호자 목록 페이지로 이동할게요");
-    } else if (command.contains('뒤로') || command.contains('이전')) {
-      await _speak("이전 페이지로 이동할게요");
-      if (mounted) Navigator.pop(context);
-    } else if (command.contains("소리 눈") || command.contains("소리눈") || command.contains("우리는") || command.contains("우리눈") || command.contains("우리 눈")){
-        await _speak("소리눈 어플리케이션에서는 설정, 안내, 인식, 홈, 등록, 목록 같은 음성 명령어로 각각의 페이지로 이동할 수 있습니다."
-            "이전 이라고 말하면 이전 페이지로 돌아갈 수 있고, 고마워, 됐어, 종료라고 말하면 음성 안내가 종료됩니다."
-            "지금 어떤 페이지에 있는지 헷갈리신다면 언제든지 소리눈이라고 불러주세요."
-            "현재 페이지가 무엇인지와 함께, 사용할 수 있는 음성 명령어를 친절하게 안내해드립니다.");
-    } else if (command.contains('음성 명령어') || command.contains('명령어')) {
-      await _speak("지금 사용할 수 있는 명령어는 설정. 안내. 인식. 홈. 등록. 목록. 소리눈. 이전, 명령어. 음성 명령어가 있습니다");
-    } else if (command.contains('고마워') ||
-        command.contains('됐어') ||
-        command.contains('종료')) {
-      await _speak("언제든 다시 불러주세요");
-    } else if (command.contains('전송')) {
-      final isInAnalyzeScreen =
-          context.widget.runtimeType == CameraAnalyzeScreen;
-
-      if (isInAnalyzeScreen) {
-        final state = context.findAncestorStateOfType<CameraAnalyzeState>();
-        if (state != null) {
-          state.captureAndSendScreen();
-        } else {
-          final unknowns = [
-            "죄송해요. 다시 말씀해 주시겠어요?",
-            "잘 못 들었어요. 한 번 더 말씀해 주세요.",
-            "말씀을 놓쳤어요. 다시 한 번 부탁드릴게요.",
-          ];
-          await _speak(unknowns[Random().nextInt(unknowns.length)]);
-          _shouldContinueListening = true;
-        }
-      }
+    if (!handled) {
+      final fallback = [
+        "무슨 말씀인지 다시 한번 말씀해 주세요",
+        "죄송해요. 이해하지 못했어요",
+        "한 번 더 말씀해 주시겠어요?",
+      ];
+      await _speak(fallback[Random().nextInt(fallback.length)]);
     }
 
     _isProcessing = false;
@@ -242,7 +198,6 @@ class _GlobalMicButtonState extends State<GlobalMicButton> {
 
   @override
   void dispose() {
-    print("🧹 dispose() 호출됨: 리스닝 중단 및 초기화");
     _speech.stop();
     _flutterTts.stop();
     _commandQueue.clear();

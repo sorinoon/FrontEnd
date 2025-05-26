@@ -18,18 +18,12 @@ class ProtectorListScreen extends StatefulWidget {
 class _ProtectorListScreenState extends State<ProtectorListScreen> {
   // 저장된 보호자 이름 리스트
   final List<String> protectorNames = [
-    '어머니',
-    '아버지',
-    '딸',
-    '아들',
+    '최준희'
   ];
 
   // 저장된 보호자의 연락처 리스트
   List<String> contactNotes = [
-    '010-1234-5678',
-    '010-1234-1234',
-    '010-5678-1234',
-    '010-5678-5678',
+    '010-2098-6403',
   ];
 
   // 현재 드래그 중인 항목의 인덱스를 추적

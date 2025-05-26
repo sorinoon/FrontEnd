@@ -1,15 +1,26 @@
-import 'package:camera/camera.dart';
+import 'dart:async';
+import 'dart:convert';
+import 'dart:collection';
 import 'package:flutter/material.dart';
+import 'package:camera/camera.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:web_socket_channel/web_socket_channel.dart';
+import 'package:flutter_tts/flutter_tts.dart';
+import 'package:image/image.dart' as img;
 import 'package:provider/provider.dart';
 import 'package:screen_brightness/screen_brightness.dart';
-import '../widgets/GlobalMicButton.dart';
-import '../widgets/GlobalGoBackButton.dart';
-import '../Pages/User_SettingsProvider.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:geolocator/geolocator.dart';
+import 'package:latlong2/latlong.dart';
+
+import '../Pages/User_SettingsProvider.dart';
+import '../widgets/GlobalGoBackButton.dart';
+import '../widgets/GlobalMicButton.dart';
 
 class PageNavigate extends StatefulWidget {
-  const PageNavigate({Key? key}) : super(key: key);
+  final List<LatLng> route;
+
+  const PageNavigate({Key? key, required this.route}) : super(key: key);
 
   @override
   State<PageNavigate> createState() => _PageNavigateState();
@@ -20,63 +31,178 @@ class _PageNavigateState extends State<PageNavigate> with WidgetsBindingObserver
   List<CameraDescription>? _cameras;
   bool _isCameraInitialized = false;
 
+  WebSocketChannel? _channel;
+  Timer? _sendTimer;
+  CameraImage? latestFrame;
+
+  String _yoloResultText = '감지 대기 중...';
+  final FlutterTts _flutterTts = FlutterTts();
+  bool _isSpeaking = false;
+
+  StreamSubscription<Position>? _positionStream;
+  final Distance _distance = Distance();
+  int _lastGuidedIndex = -1;
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    setBrightness();
-    initializeCamera();
+    _initAll();
   }
 
-  void _callProtector() async {
-    // 추후에 사용자 목록 DB 연동 필요
-    final List<String> contactNotes = [
-      '010-1234-5678',
-      '010-1234-1234',
-      '010-5678-1234',
-      '010-5678-5678',
-    ];
-
-    final String phoneNumber = contactNotes[0]; // 가장 상단 번호
-    final Uri phoneUri = Uri(scheme: 'tel', path: phoneNumber);
-
-    if (await canLaunchUrl(phoneUri)) {
-      await launchUrl(phoneUri);
-    } else {
-      print('전화 앱을 실행할 수 없습니다.');
-    }
+  Future<void> _initAll() async {
+    await _setBrightness();
+    await _initializeCamera();
+    await _initializeWebSocket();
+    await _initializeLocationTracking();
   }
-  
-  Future<void> setBrightness() async {
-    final lowPowerProvider = Provider.of<UserSettingsProvider>(context, listen: false);
+
+  Future<void> _setBrightness() async {
+    final settings = Provider.of<UserSettingsProvider>(context, listen: false);
     final brightness = ScreenBrightness();
 
-    if (lowPowerProvider.isLowPowerModeEnabled) {
+    if (settings.isLowPowerModeEnabled) {
       await brightness.setApplicationScreenBrightness(0.0);
     }
   }
-  Future<void> initializeCamera() async {
+
+  Future<void> _resetBrightness() async {
+    await ScreenBrightness().setApplicationScreenBrightness(1.0);
+  }
+
+  Future<void> _initializeCamera() async {
     final status = await Permission.camera.request();
+    if (!status.isGranted) return;
 
-    if (!status.isGranted) {
-      print("카메라 권한이 거부되었습니다.");
-      return;
+    _cameras = await availableCameras();
+    if (_cameras!.isNotEmpty) {
+      _cameraController = CameraController(_cameras![0], ResolutionPreset.low);
+      await _cameraController!.initialize();
+
+      setState(() {
+        _isCameraInitialized = true;
+      });
+
+      _cameraController!.startImageStream((CameraImage image) {
+        latestFrame = image;
+      });
     }
+  }
 
-    try {
-      _cameras = await availableCameras();
-      if (_cameras!.isNotEmpty) {
-        _cameraController = CameraController(
-          _cameras![0],
-          ResolutionPreset.high,
-        );
-        await _cameraController!.initialize();
-        setState(() {
-          _isCameraInitialized = true;
+  Future<void> _initializeWebSocket() async {
+    _flutterTts.setLanguage("ko-KR");
+    _flutterTts.setSpeechRate(0.5);
+
+    _channel = WebSocketChannel.connect(
+      Uri.parse('ws://223.194.138.73:8000/ws/detect/'),
+    );
+
+    _channel!.stream.listen((message) async {
+      final data = jsonDecode(message);
+      final warning = data['warning'];
+
+      if (warning != null && warning.isNotEmpty && !_isSpeaking) {
+        _isSpeaking = true;
+        await _flutterTts.speak(warning);
+        _flutterTts.setCompletionHandler(() {
+          _isSpeaking = false;
         });
       }
-    } catch (e) {
-      print("카메라 초기화 중 오류 발생: $e");
+    });
+
+    _sendTimer = Timer.periodic(Duration(milliseconds: 300), (_) async {
+      if (latestFrame == null) return;
+      final image = latestFrame!;
+      latestFrame = null;
+
+      try {
+        final width = image.width;
+        final height = image.height;
+        final bytes = image.planes[0].bytes;
+
+        final grayscale = img.Image(width: width, height: height);
+        for (int y = 0; y < height; y++) {
+          for (int x = 0; x < width; x++) {
+            final index = y * width + x;
+            final value = bytes[index];
+            grayscale.setPixel(x, y, img.ColorRgb8(value, value, value));
+          }
+        }
+
+        final jpeg = img.encodeJpg(grayscale);
+        final base64Image = base64Encode(jpeg);
+
+        if (_channel != null && _channel!.closeCode == null) {
+          _channel!.sink.add(jsonEncode({'image': base64Image}));
+        }
+      } catch (e) {
+        print("프레임 전송 실패: $e");
+      }
+    });
+  }
+
+  Future<void> _initializeLocationTracking() async {
+    bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    if (!serviceEnabled) return;
+
+    LocationPermission permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+      if (permission != LocationPermission.whileInUse && permission != LocationPermission.always) return;
+    }
+
+    _positionStream = Geolocator.getPositionStream().listen((Position position) {
+      _checkGuidance(position);
+    });
+  }
+
+  void _checkGuidance(Position position) async {
+    for (int i = _lastGuidedIndex + 1; i < widget.route.length; i++) {
+      final userPos = LatLng(position.latitude, position.longitude);
+      final routePos = widget.route[i];
+
+      final distanceToPoint = _distance(userPos, routePos);
+
+      if (distanceToPoint < 15.0) {
+        _lastGuidedIndex = i;
+
+        if (i < widget.route.length - 1) {
+          final current = widget.route[i];
+          final next = widget.route[i + 1];
+
+          final bearing = _distance.bearing(current, next);
+          String direction;
+
+          if (bearing > 45 && bearing < 135) {
+            direction = "오른쪽으로 이동하세요";
+          } else if (bearing > -135 && bearing < -45) {
+            direction = "왼쪽으로 이동하세요";
+          } else {
+            direction = "직진하세요";
+          }
+
+          if (!_isSpeaking) {
+            _isSpeaking = true;
+            await _flutterTts.speak(direction);
+            _flutterTts.setCompletionHandler(() {
+              _isSpeaking = false;
+            });
+          }
+        } else {
+          await _flutterTts.speak("목적지에 도착했습니다");
+          _positionStream?.cancel();
+        }
+        break;
+      }
+    }
+  }
+
+  void _callProtector() async {
+    final phoneUri = Uri(scheme: 'tel', path: '010-1234-5678');
+    if (await canLaunchUrl(phoneUri)) {
+      await launchUrl(phoneUri);
+    } else {
+      print('전화 앱 실행 실패');
     }
   }
 
@@ -85,17 +211,17 @@ class _PageNavigateState extends State<PageNavigate> with WidgetsBindingObserver
     _resetBrightness();
     WidgetsBinding.instance.removeObserver(this);
     _cameraController?.dispose();
+    _channel?.sink.close();
+    _sendTimer?.cancel();
+    _flutterTts.stop();
+    _positionStream?.cancel();
     super.dispose();
-  }
-
-  Future<void> _resetBrightness() async {
-    await ScreenBrightness().setApplicationScreenBrightness(1.0);
   }
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.inactive || state == AppLifecycleState.paused) {
-      _resetBrightness(); // 앱이 비활성화되면 밝기 복원
+      _resetBrightness();
     }
   }
 
@@ -106,15 +232,8 @@ class _PageNavigateState extends State<PageNavigate> with WidgetsBindingObserver
           ? const Center(child: CircularProgressIndicator())
           : Stack(
         children: [
-          // ✅ 카메라 배경
-          Positioned.fill(
-            child: CameraPreview(_cameraController!),
-          ),
-
-          // ✅ ⬅️ 뒤로가기
+          Positioned.fill(child: CameraPreview(_cameraController!)),
           GlobalGoBackButton(),
-
-          // ✅ 안내 모드 (중앙 상단)
           Positioned(
             top: 60,
             left: 0,
@@ -128,50 +247,42 @@ class _PageNavigateState extends State<PageNavigate> with WidgetsBindingObserver
                 ),
                 child: Text(
                   '안내 모드',
-                  style: TextStyle(
-                    fontSize: 20,
-                    color: Colors.black,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: TextStyle(fontSize: 20, color: Colors.black, fontWeight: FontWeight.bold),
                 ),
               ),
             ),
           ),
-
-          // ✅ 통화 버튼 (화면 하단 중앙)
+          Positioned(
+            top: 120,
+            left: 0,
+            right: 0,
+            child: Center(
+              child: Text(
+                _yoloResultText,
+                style: TextStyle(fontSize: 18, color: Colors.white, backgroundColor: Colors.black54),
+              ),
+            ),
+          ),
           SafeArea(
             child: Align(
               alignment: Alignment.bottomCenter,
               child: Padding(
                 padding: const EdgeInsets.only(bottom: 24),
                 child: GestureDetector(
-                  onTap: () {
-                    print("통화 버튼 클릭됨");
-                    _callProtector();         // 전화 기능 호출
-                  },
+                  onTap: _callProtector,
                   child: Container(
                     width: 80,
                     height: 80,
-                    decoration: const BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: Colors.white,
-                    ),
-                    child: const Icon(
-                      Icons.call,
-                      color: Color(0xff24bd24),
-                      size: 45,
-                    ),
+                    decoration: BoxDecoration(shape: BoxShape.circle, color: Colors.white),
+                    child: Icon(Icons.call, color: Color(0xff24bd24), size: 45),
                   ),
                 ),
               ),
             ),
           ),
-          // ✅ 글로벌 마이크 버튼 (좌측 하단 유지)
-          GlobalMicButton(
-            onPressed: () {
-              print("마이크 클릭됨");
-            },
-          ),
+          GlobalMicButton(onPressed: () {
+            print("마이크 클릭됨");
+          }),
         ],
       ),
     );

@@ -54,7 +54,7 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
 
           ),
 
-          // 버튼들 정렬 - 중앙 기준으로 자연스럽게
+          // 버튼들 정렬 - 중앙 기준
           Column(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
@@ -68,7 +68,6 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
                   Provider.of<UserSettingsProvider>(context, listen: false).vibrate();
                 },
                 onDoubleTap: () {
-                  // TODO: 인식 모드 페이지
                     Navigator.push(
                       context,
                       MaterialPageRoute(builder: (context) => CameraAnalyzeScreen()),
@@ -77,7 +76,7 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
                 },
                 userSettings: UserSettings,
               ),
-              SizedBox(height: 70- UserSettings.fontSizeOffset * 4),
+              SizedBox(height: 41- UserSettings.fontSizeOffset * 4),
               _buildMenuButton(
                 icon: Icons.settings,
                 label: '설정',
@@ -94,7 +93,7 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
                 },
                 userSettings: UserSettings,
               ),
-              SizedBox(height: 70- UserSettings.fontSizeOffset * 4),
+              SizedBox(height: 41- UserSettings.fontSizeOffset * 4),
               _buildMenuButton(
                 icon: Icons.navigation,
                 label: '안내 모드',

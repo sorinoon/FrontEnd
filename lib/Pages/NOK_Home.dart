@@ -44,7 +44,7 @@ class NOKHomeScreen extends StatelessWidget {
                 },
                 protectorSettings: protectorSettings,
               ),
-              SizedBox(height: 70- protectorSettings.fontSizeOffset * 4),
+              SizedBox(height: 41- protectorSettings.fontSizeOffset * 4),
               _buildMenuButton(
                 icon: Icons.qr_code_2,
                 label: 'QR 버튼',
@@ -57,7 +57,7 @@ class NOKHomeScreen extends StatelessWidget {
                 },
                 protectorSettings: protectorSettings,
               ),
-              SizedBox(height: 70- protectorSettings.fontSizeOffset * 4),
+              SizedBox(height: 41- protectorSettings.fontSizeOffset * 4),
               _buildMenuButton(
                 icon: Icons.settings,
                 label: '설정',

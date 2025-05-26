@@ -90,7 +90,7 @@ class _UserSettingScreenState extends State<UserSettingScreen> {
             child: SingleChildScrollView(
               child: Column(
                 children: [
-                  SettingItem(
+                  /*SettingItem(
                     title: '카카오계정',
                     rightText: 'user_hansungKim123@naver.com',
                     hasToggle: false,
@@ -104,7 +104,7 @@ class _UserSettingScreenState extends State<UserSettingScreen> {
                     thickness: 1,
                     indent: 15, // 선의 시작 위치
                     endIndent: 15, // 선의 끝 위치
-                  ),
+                  ),*/
                   SettingItem(
                     title: '저전력 모드',
                     subtitle: '네비게이션 사용 시\n자동으로 저전력 모드로 전환합니다.',
