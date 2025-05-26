@@ -5,9 +5,10 @@ import 'package:http/http.dart' as http;
 import 'package:http_parser/http_parser.dart';
 import 'dart:typed_data';
 import 'dart:convert';
-import '../widgets/globalMicButton.dart';
 import '../widgets/GlobalGoBackButtonWhite.dart';
+import '../widgets/AnalyzeMicButton.dart';
 import 'package:flutter_tts/flutter_tts.dart';
+import 'User_Home.dart';
 
 class CameraAnalyzeScreen extends StatefulWidget {
   @override
@@ -116,11 +117,9 @@ class CameraAnalyzeState extends State<CameraAnalyzeScreen> {
               ),
             ),
 
-            GlobalMicButton(
-              onPressed: () async {
-                debugPrint('마이크 버튼 클릭됨');
-                await captureAndSendScreen();
-              },
+            AnalyzeMicButton(
+              onPressed: () {},
+              onSend: captureAndSendScreen,
             ),
           ],
         ),

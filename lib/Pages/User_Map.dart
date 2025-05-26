@@ -232,7 +232,7 @@ class _UserMapPageState extends State<UserMapPage> {
                 } else if (command.contains("소리 눈") || command.contains("소리눈") ||
                     command.contains("우리는") || command.contains("우리눈") || command.contains("우리 눈")) {
                   await tts.speak(
-                      "현재 페이지는 출발지 목적지 설정 페이지입니다. "
+                      "지금은 출발지 목적지 설정 페이지입니다. "
                           "출발지 한성대입구역. 이라고 말하여 출발지를 설정하고, "
                           "도착지 길흥역. 이라고 말하여 도착지를 설정합니다. "
                           "경로 탐색. 이라고 말하여 경로 탐색을 시작합니다."
