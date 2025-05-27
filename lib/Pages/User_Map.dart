@@ -1,4 +1,3 @@
-
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -87,18 +86,17 @@ class _UserMapPageState extends State<UserMapPage> {
       });
 
       final response = await http.post(
-        Uri.parse('https://apis.openapi.sk.com/tmap/routes/pedestrian?version=1'),
-        headers: {
-          'Content-Type': 'application/json',
-          'appKey': _appKey,
-        },
+        Uri.parse(
+          'https://apis.openapi.sk.com/tmap/routes/pedestrian?version=1',
+        ),
+        headers: {'Content-Type': 'application/json', 'appKey': _appKey},
         body: jsonEncode({
           "startX": startCoord['lon'],
           "startY": startCoord['lat'],
           "endX": endCoord['lon'],
           "endY": endCoord['lat'],
           "reqCoordType": "WGS84GEO",
-          "resCoordType": "WGS84GEO"
+          "resCoordType": "WGS84GEO",
         }),
       );
 
@@ -113,7 +111,6 @@ class _UserMapPageState extends State<UserMapPage> {
           _routePoints.add(LatLng(coords[1], coords[0]));
         }
       }
-
     } catch (e) {
       print('❌ 네이티브 호출 오류: $e');
     }
@@ -145,7 +142,6 @@ class _UserMapPageState extends State<UserMapPage> {
 
   @override
   Widget build(BuildContext context) {
-
     return Scaffold(
       resizeToAvoidBottomInset: true,
       body: Stack(
@@ -156,7 +152,6 @@ class _UserMapPageState extends State<UserMapPage> {
               fit: BoxFit.cover,
             ),
           ),
-
           SafeArea(
             child: LayoutBuilder(
               builder: (context, constraints) {
@@ -182,61 +177,66 @@ class _UserMapPageState extends State<UserMapPage> {
                               ),
                             ),
                             const SizedBox(height: 20),
-
                             Container(
                               height: 450,
                               child: AndroidView(
                                 viewType: 'TMapNativeView',
                                 layoutDirection: TextDirection.ltr,
                                 creationParams: {},
-                                creationParamsCodec: const StandardMessageCodec(),
+                                creationParamsCodec:
+                                    const StandardMessageCodec(),
                               ),
                             ),
-
                             TextField(
                               controller: _startController,
-                              style: const TextStyle(fontSize: 20, color: Colors.black),
+                              onChanged: (_) {
+                                if (_routeTimeText != null) {
+                                  setState(() {
+                                    _routeTimeText = null;
+                                  });
+                                }
+                              },
                               decoration: const InputDecoration(
                                 labelText: '출발지 입력',
-                                labelStyle: TextStyle(
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                                hintText: '출발지',
-                                floatingLabelBehavior: FloatingLabelBehavior.never,
                                 filled: true,
                                 fillColor: Colors.white,
-                                contentPadding: EdgeInsets.symmetric(
-                                  vertical: 5,
-                                  horizontal: 13,
-                                ),
                               ),
                             ),
                             const SizedBox(height: 5),
                             TextField(
                               controller: _endController,
-                              style: const TextStyle(fontSize: 20, color: Colors.black),
+                              onChanged: (_) {
+                                if (_routeTimeText != null) {
+                                  setState(() {
+                                    _routeTimeText = null;
+                                  });
+                                }
+                              },
                               decoration: const InputDecoration(
                                 labelText: '도착지 입력',
-                                labelStyle: TextStyle(
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                                hintText: '도착지',
-                                floatingLabelBehavior: FloatingLabelBehavior.never,
                                 filled: true,
                                 fillColor: Colors.white,
-                                contentPadding: EdgeInsets.symmetric(
-                                  vertical: 5,
-                                  horizontal: 13,
-                                ),
                               ),
                             ),
                             const SizedBox(height: 20),
                             ElevatedButton(
                               onPressed: () {
-                                Provider.of<UserSettingsProvider>(context, listen: false).vibrate();
-                                _searchRoute();
+                                Provider.of<UserSettingsProvider>(
+                                  context,
+                                  listen: false,
+                                ).vibrate();
+                                if (_routeTimeText == null) {
+                                  _searchRoute();
+                                } else {
+                                  Navigator.pushReplacement(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder:
+                                          (_) =>
+                                              PageNavigate(route: _routePoints),
+                                    ),
+                                  );
+                                }
                               },
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: Colors.white,
@@ -246,12 +246,15 @@ class _UserMapPageState extends State<UserMapPage> {
                                 ),
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(20),
-                                  side: const BorderSide(color: Color(0xffF8CB38), width: 3),
+                                  side: const BorderSide(
+                                    color: Color(0xffF8CB38),
+                                    width: 3,
+                                  ),
                                 ),
                               ),
-                              child: const Text(
-                                '경로 요청',
-                                style: TextStyle(
+                              child: Text(
+                                _routeTimeText == null ? '경로 요청' : '안내 시작',
+                                style: const TextStyle(
                                   fontSize: 20,
                                   color: Colors.black,
                                   fontWeight: FontWeight.bold,
@@ -260,7 +263,9 @@ class _UserMapPageState extends State<UserMapPage> {
                             ),
                             if (_routeTimeText != null)
                               Padding(
-                                padding: const EdgeInsets.symmetric(vertical: 12.0),
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 12.0,
+                                ),
                                 child: Center(
                                   child: Text(
                                     _routeTimeText!,
@@ -271,7 +276,6 @@ class _UserMapPageState extends State<UserMapPage> {
                                   ),
                                 ),
                               ),
-                            const SizedBox(height: 10),
                           ],
                         ),
                       ),
@@ -281,66 +285,43 @@ class _UserMapPageState extends State<UserMapPage> {
               },
             ),
           ),
-
           GlobalGoBackButton(targetPage: UserHomeScreen()),
           TmapMicButton(
-              onPressed: () {},
-              customCommandHandler: (command, tts, context) async {
-                final state = context.findAncestorStateOfType<_UserMapPageState>();
+            onPressed: () {},
+            customCommandHandler: (command, tts, context) async {
+              final state =
+                  context.findAncestorStateOfType<_UserMapPageState>();
 
-                if (command.contains("출발지")) {
-                  final place = command.replaceAll("출발지", "").trim();
-                  state?.updateInputField("출발", place);
+              if (command.contains("출발지")) {
+                final place = command.replaceAll("출발지", "").trim();
+                state?.updateInputField("출발", place);
+                return true;
+              } else if (command.contains("도착지")) {
+                final place = command.replaceAll("도착지", "").trim();
+                state?.updateInputField("도착", place);
+                return true;
+              } else if (command.contains("경로 탐색") || command.contains("탐색")) {
+                if (state != null) {
+                  await tts.speak("경로를 탐색할게요");
+                  state._searchRoute();
                   return true;
-                } else if (command.contains("도착지")) {
-                  final place = command.replaceAll("도착지", "").trim();
-                  state?.updateInputField("도착", place);
-                  return true;
-                } else if (command.contains("경로 탐색") || command.contains("탐색")) {
-                  if (state != null) {
-                    await tts.speak("경로를 탐색할게요");
-                    state._searchRoute();
-                    return true;
-                  }
-                } else if (command.contains("안내 시작") || command.contains("시작")) {
-                  if (state != null) {
-                    await tts.speak("소리눈 네비게이션이 안내를 시작합니다");
-                    if (context.mounted) {
-                      Navigator.pushReplacement(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => PageNavigate(route: state._routePoints),
-                        ),
-                      );
-                    }
-                    return true;
-                  }
-                } else if (command.contains("소리 눈") || command.contains("소리눈") ||
-                    command.contains("우리는") || command.contains("우리눈") || command.contains("우리 눈")) {
-                  await tts.speak(
-                      "지금은 출발지 목적지 설정 페이지입니다. "
-                          "출발지 한성대입구역. 이라고 말하여 출발지를 설정하고, "
-                          "도착지 길흥역. 이라고 말하여 도착지를 설정합니다. "
-                          "경로 탐색. 이라고 말하여 경로 탐색을 시작합니다."
-                  );
-                  return true;
-                } else if (command.contains("홈") || command.contains("메인")) {
-                  await tts.speak("메인 홈으로 이동할게요");
+                }
+              } else if (command.contains("안내 시작") || command.contains("시작")) {
+                if (state != null) {
+                  await tts.speak("소리눈 네비게이션이 안내를 시작합니다");
                   if (context.mounted) {
                     Navigator.pushReplacement(
                       context,
-                      MaterialPageRoute(builder: (_) => UserHomeScreen()),
+                      MaterialPageRoute(
+                        builder: (_) => PageNavigate(route: state._routePoints),
+                      ),
                     );
                   }
                   return true;
-                } else if (command.contains("뒤로") || command.contains("이전")) {
-                  await tts.speak("이전 페이지로 이동할게요");
-                  if (context.mounted) Navigator.pop(context);
-                  return true;
                 }
-
-                return false;
               }
+              return false;
+            },
           ),
         ],
       ),
