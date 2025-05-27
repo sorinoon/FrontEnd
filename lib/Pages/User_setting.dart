@@ -9,6 +9,7 @@ import 'User_Home.dart';
 import '../Pages/User_NOKConnect.dart';
 import '../widgets/GlobalMicButton.dart';
 import '../widgets/GlobalGoBackButton.dart';
+import '../widgets/SettingMicButton.dart';
 
 class UserSettingScreen extends StatefulWidget {
   const UserSettingScreen({super.key});
@@ -256,7 +257,7 @@ class _UserSettingScreenState extends State<UserSettingScreen> {
               ),
             ),
           ),
-          GlobalMicButton(
+          SettingMicButton(
             onPressed: () {
               Provider.of<UserSettingsProvider>(context, listen: false).vibrate();
             },

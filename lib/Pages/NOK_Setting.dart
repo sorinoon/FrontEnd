@@ -162,20 +162,25 @@ class _NOKSettingScreen extends State<NOKSettingScreen> {
                     },
                   ),
                   const Divider(height: 16),
-                  Center(
+                  const SizedBox(height: 40),
+                  SizedBox(
+                    width: double.infinity, // 🔥 버튼을 좌우 최대한 넓게
                     child: ElevatedButton(
                       onPressed: _logoutAndRedirectToLogin,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.redAccent,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
-                        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(30),
+                        ),
+                        padding: const EdgeInsets.symmetric(vertical: 16), // 높이만 유지
                       ),
                       child: Text(
                         '로그아웃',
-                        style: TextStyle(fontSize: 16 + protectorSettings.fontSizeOffset),
+                        style: TextStyle(fontSize: 18 + protectorSettings.fontSizeOffset,
+                            color: Colors.white),
                       ),
                     ),
-                  )
+                  ),
                 ],
               ),
             ),
