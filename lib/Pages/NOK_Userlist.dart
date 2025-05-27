@@ -3,7 +3,7 @@ import 'package:provider/provider.dart';
 import '../widgets/GlobalGoBackButton.dart';
 import '../Pages/NOK_SettingsProvider.dart';
 import 'NOK_Home.dart';
-import '../Pages/NOK_UserLocation.dart';
+import '../Pages/NOK_UserLocation.dart'; // <-- CustomMapScreen 정의되어 있는 곳
 
 class UserListScreen extends StatefulWidget {
   const UserListScreen({super.key});
@@ -13,21 +13,9 @@ class UserListScreen extends StatefulWidget {
 }
 
 class _UserListScreenState extends State<UserListScreen> {
-  // 미리 저장된 사용자 이름 리스트
-  final List<String> userNames = [
-    '홍길동',
-    '김철수',
-    '이영희',
-    '박민수',
-  ];
-
-  // 각 사용자의 메모 리스트 (초기값 - 기본 텍스트)
-  List<String> userNotes = [
-    '사용자 특징 및 메모',
-    '사용자 특징 및 메모',
-    '사용자 특징 및 메모',
-    '사용자 특징 및 메모',
-  ];
+  final List<String> userNames = ['이영주', '김규리', '전준혁'];
+  //['이영주', '김규리', '전준혁'];
+  List<String> userNotes = ['팀원 1', '팀원 2', '팀원 3'];
 
   @override
   Widget build(BuildContext context) {
@@ -62,7 +50,6 @@ class _UserListScreenState extends State<UserListScreen> {
             ),
           ),
 
-          // 사용자 리스트
           SafeArea(
             child: Column(
               children: [
@@ -75,9 +62,9 @@ class _UserListScreenState extends State<UserListScreen> {
                         margin: EdgeInsets.symmetric(horizontal: 10),
                         padding: EdgeInsets.all(10),
                         child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.center, // 요소를 수직 중앙 정렬
+                          crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
-                            // 사용자 프로필 이미지
+                            // 프로필
                             Container(
                               width: 50,
                               height: 50,
@@ -87,13 +74,14 @@ class _UserListScreenState extends State<UserListScreen> {
                               ),
                             ),
                             SizedBox(width: 15),
-                            // 사용자 이름과 메모
+
+                            // 이름 + 메모
                             Expanded(
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    userNames[index], // 사용자 이름
+                                    userNames[index],
                                     style: TextStyle(
                                       fontSize: 22 + protectorSettings.fontSizeOffset,
                                       fontWeight: FontWeight.bold,
@@ -102,11 +90,11 @@ class _UserListScreenState extends State<UserListScreen> {
                                   GestureDetector(
                                     onTap: () async {
                                       Provider.of<NOKSettingsProvider>(context, listen: false).vibrate();
-                                      // 텍스트 입력 다이얼로그
                                       String? updatedNote = await showDialog<String>(
                                         context: context,
                                         builder: (BuildContext context) {
-                                          TextEditingController controller = TextEditingController(text: userNotes[index]);
+                                          TextEditingController controller =
+                                          TextEditingController(text: userNotes[index]);
 
                                           return AlertDialog(
                                             backgroundColor: Color(0xffF7F7F7),
@@ -133,7 +121,7 @@ class _UserListScreenState extends State<UserListScreen> {
                                               ),
                                               TextButton(
                                                 onPressed: () {
-                                                  Navigator.pop(context, controller.text); // 텍스트 입력 후 반환
+                                                  Navigator.pop(context, controller.text);
                                                   Provider.of<NOKSettingsProvider>(context, listen: false).vibrate();
                                                 },
                                                 child: Text(
@@ -147,19 +135,18 @@ class _UserListScreenState extends State<UserListScreen> {
                                       );
 
                                       if (updatedNote != null && updatedNote.isNotEmpty) {
-                                        // 수정된 메모를 저장하면
                                         setState(() {
-                                          userNotes[index] = updatedNote; // 해당 인덱스에 메모를 업데이트
+                                          userNotes[index] = updatedNote;
                                         });
                                       }
                                     },
                                     child: Text(
-                                      userNotes[index], // 사용자 메모 또는 기본 텍스트
+                                      userNotes[index],
                                       style: TextStyle(
                                         fontSize: 14 + protectorSettings.fontSizeOffset,
                                         color: Colors.black,
                                       ),
-                                      overflow: TextOverflow.visible, // 줄바꿈 활성화
+                                      overflow: TextOverflow.visible,
                                       softWrap: true,
                                     ),
                                   ),
@@ -167,9 +154,10 @@ class _UserListScreenState extends State<UserListScreen> {
                               ),
                             ),
                             SizedBox(width: 10),
+
                             // 위치 보기 버튼
                             Container(
-                              width: 87 + protectorSettings.fontSizeOffset * 4,
+                              width: 95 + protectorSettings.fontSizeOffset * 4,
                               height: 40 + protectorSettings.fontSizeOffset * 2,
                               decoration: BoxDecoration(
                                 color: Color(0xffffffff),
@@ -179,14 +167,43 @@ class _UserListScreenState extends State<UserListScreen> {
                                   width: 1.5,
                                 ),
                               ),
-                              child: Center( // 버튼 텍스트를 중앙 정렬
+                              child: Center(
                                 child: TextButton(
                                   onPressed: () {
+                                    Provider.of<NOKSettingsProvider>(context, listen: false).vibrate();
+
+                                    // 사용자별 지도/역 정보 설정
+                                    String mapPath;
+                                    String nearestStation;
+
+                                    switch (userNames[index]) {
+                                      case '전준혁':
+                                        mapPath = 'assets/images/map1.png';
+                                        nearestStation = '태평역';
+                                        break;
+                                      case '김규리':
+                                        mapPath = 'assets/images/map3.png';
+                                        nearestStation = '길음역';
+                                        break;
+                                      case '이영주':
+                                        mapPath = 'assets/images/map2.png';
+                                        nearestStation = '창신역';
+                                        break;
+                                      default:
+                                        mapPath = 'assets/images/map1.png';
+                                        nearestStation = '미상';
+                                    }
+
                                     Navigator.push(
                                       context,
-                                      MaterialPageRoute(builder: (context) => LocationScreen()),
+                                      MaterialPageRoute(
+                                        builder: (context) => CustomMapScreen(
+                                          userName: userNames[index],
+                                          mapImage: mapPath,
+                                          nearestStation: nearestStation,
+                                        ),
+                                      ),
                                     );
-                                    Provider.of<NOKSettingsProvider>(context, listen: false).vibrate();
                                   },
                                   child: Text(
                                     '위치 보기',

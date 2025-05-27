@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_tts/flutter_tts.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import '../widgets/GlobalMicButton.dart';
 import '../widgets/GlobalGoBackButton.dart';
+import 'User_Home.dart';
 
 class CAMQRScreen extends StatefulWidget {
   @override
@@ -10,7 +12,35 @@ class CAMQRScreen extends StatefulWidget {
 
 class _CAMQRState extends State<CAMQRScreen> {
   MobileScannerController controller = MobileScannerController();
+  final FlutterTts flutterTts = FlutterTts();
+  final String validCode = "123456"; // 비교할 QR 코드 (6자리 숫자)
   bool _isScanned = false;
+
+  Future<void> _speak(String text) async {
+    await flutterTts.setLanguage("ko-KR");
+    await flutterTts.setSpeechRate(0.5);
+    await flutterTts.speak(text);
+  }
+
+  void _handleQRCode(String? code) async {
+    if (code == null || _isScanned) return;
+    _isScanned = true;
+    controller.stop();
+
+    if (code == validCode) {
+      await _speak("보호자 등록에 성공하였습니다.");
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => const UserHomeScreen()),
+      );
+    } else {
+      await _speak("보호자 등록에 실패하였습니다. 이전 화면으로 돌아갑니다.");
+      Navigator.pop(context);
+    }
+
+    _isScanned = false;
+    controller.start();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -23,16 +53,11 @@ class _CAMQRState extends State<CAMQRScreen> {
           // 카메라 화면
           MobileScanner(
             controller: controller,
-            onDetect: (capture) async {
+            onDetect: (capture) {
               final List<Barcode> barcodes = capture.barcodes;
-              if (!_isScanned && barcodes.isNotEmpty) {
-                _isScanned = true;
-                controller.stop();
-                debugPrint('QR Code Scanned: ${barcodes.first.rawValue}');
-
-                await Future.delayed(Duration(seconds: 2));
-                _isScanned = false;
-                controller.start();
+              if (barcodes.isNotEmpty) {
+                final String? code = barcodes.first.rawValue;
+                _handleQRCode(code);
               }
             },
           ),
@@ -49,11 +74,11 @@ class _CAMQRState extends State<CAMQRScreen> {
               child: Column(
                 children: [
                   Container(
-                    width: cutOutSize, // 박스와 너비 동일하게 맞춤!
+                    width: cutOutSize,
                     decoration: BoxDecoration(
                       color: Colors.yellow,
                     ),
-                    padding: EdgeInsets.symmetric(vertical: 8), // 텍스트 수직 패딩만
+                    padding: EdgeInsets.symmetric(vertical: 8),
                     child: Center(
                       child: Text(
                         '중앙에 QR코드를 위치해주세요',
@@ -69,10 +94,7 @@ class _CAMQRState extends State<CAMQRScreen> {
                     width: cutOutSize,
                     height: cutOutSize,
                     decoration: BoxDecoration(
-                      border: Border.all(
-                        color: Colors.yellow,
-                        width: 6,
-                      ),
+                      border: Border.all(color: Colors.yellow, width: 6),
                     ),
                   ),
                 ],
@@ -80,15 +102,14 @@ class _CAMQRState extends State<CAMQRScreen> {
             ),
           ),
 
-          // 글로벌 마이크 버튼
+          // 마이크 버튼
           GlobalMicButton(
             onPressed: () {
               debugPrint('Global Mic Button tapped!');
-              // 음성 인식 기능 연결 가능
             },
           ),
 
-          // 중앙 하단 카메라 버튼
+          // 카메라 버튼
           Positioned(
             bottom: 30,
             left: 0,
@@ -117,6 +138,7 @@ class _CAMQRState extends State<CAMQRScreen> {
   @override
   void dispose() {
     controller.dispose();
+    flutterTts.stop();
     super.dispose();
   }
 }

@@ -1,69 +1,66 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
-import 'package:sorinoon/Pages/Login.dart';
-import '../Pages/Login.dart';
+import 'Login.dart';
 
 class SplashScreen extends StatefulWidget {
-  const SplashScreen({Key? key}) : super(key: key);
+  const SplashScreen({super.key});
 
   @override
-  _SplashScreenState createState() => _SplashScreenState();
+  State<SplashScreen> createState() => _SplashScreenState();
 }
 
-class _SplashScreenState extends State<SplashScreen> {
-  bool showLogo = false; // 로고 표시 여부
+class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderStateMixin {
+  double _overlayOpacity = 1.0;
+  bool _showLottie = false;
 
   @override
   void initState() {
     super.initState();
 
-    // 3초 후에 Lottie 애니메이션을 숨기고 로고 이미지를 표시
-    Future.delayed(const Duration(seconds: 3), () {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => const LoginScreen()),
-      );
+    // 5초간 배경 보여주기 → 이후 Lottie 재생
+    Future.delayed(const Duration(seconds: 2), () {
+      setState(() {
+        _showLottie = true;
+      });
+    });
+
+    // 로티 재생 + 흐려짐 → Login 화면 이동
+    Future.delayed(const Duration(seconds: 4), () {
+      setState(() => _overlayOpacity = 0.0);
+      Future.delayed(const Duration(seconds: 2), () {
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (context) => const LoginScreen()),
+        );
+      });
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.white, // 배경색 설정
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            if (!showLogo) // showLogo가 false일 때 Lottie 애니메이션 표시
-              Lottie.asset(
-                'assets/lottie/loadingY.json', // Lottie 파일 경로
-                width: 200,
-                height: 200,
-                fit: BoxFit.cover,
+    // ✅ Login 화면 구조 미리 렌더링 (인터랙션은 막힘)
+    return Stack(
+      children: [
+        const LoginScreen(), // 백그라운드
+        AnimatedOpacity(
+          duration: const Duration(seconds: 2),
+          opacity: _overlayOpacity,
+          child: Container(
+            color: const Color(0xFFF8CB38),
+            child: Center(
+              child: _showLottie
+                  ? SizedBox(
+                width: MediaQuery.of(context).size.width * 4.0,
+                child: Lottie.asset(
+                  'assets/lottie/splash_fill.json',
+                  repeat: false,
+                ),
               )
-            else // showLogo가 true일 때 로고 이미지 표시
-              Column(
-                children: [
-                  Image.asset(
-                    'assets/Image/Logo_L.png', // 로고 이미지
-                    width: 150,
-                  ),
-                  const SizedBox(height: 10),
-                  const Text(
-                    '똑똑',
-                    style: TextStyle(
-                      color: Colors.black,
-                      fontFamily: 'LogoFont',
-                      fontSize: 30,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ],
-              ),
-          ],
+                  : const SizedBox.shrink(),
+            ),
+          ),
         ),
-      ),
+      ],
     );
   }
 }

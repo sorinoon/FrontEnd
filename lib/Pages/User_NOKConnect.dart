@@ -1,5 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_tts/flutter_tts.dart';
+
 import 'User_Home.dart';
 import 'CAM_QR.dart';
 import '../widgets/GlobalMicButton.dart';
@@ -13,14 +15,28 @@ class NOKConnectScreen extends StatefulWidget {
 }
 
 class _NOKConnectScreenState extends State<NOKConnectScreen> {
-  final String password = "123456"; // 비교할 고유번호 설정
+  final FlutterTts flutterTts = FlutterTts();
+
+  final String password = "235478";
   String enteredPin = "";
+
+  @override
+  void initState() {
+    super.initState();
+    flutterTts.setLanguage("ko-KR");
+    flutterTts.setSpeechRate(0.5);
+  }
+
+  Future<void> _speak(String text) async {
+    await flutterTts.speak(text);
+  }
 
   void _onKeyPressed(String value) {
     if (enteredPin.length < 6) {
       setState(() {
         enteredPin += value;
       });
+      _speak(value);
     }
     if (enteredPin.length == 6) {
       _validatePin();
@@ -29,16 +45,18 @@ class _NOKConnectScreenState extends State<NOKConnectScreen> {
 
   void _validatePin() {
     if (enteredPin == password) {
+      _speak("보호자가 성공적으로 등록되었습니다");
       Navigator.push(
         context,
         MaterialPageRoute(builder: (context) => UserHomeScreen()),
       );
     } else {
       setState(() {
-        enteredPin = ""; // 실패 시 초기화
+        enteredPin = "";
       });
 
-      // 🍎 iOS 스타일 팝업 (화면 터치 시 닫힘)
+      _speak("찾을 수 없는 고유번호입니다.");
+
       showGeneralDialog(
         context: context,
         barrierDismissible: true,
@@ -65,7 +83,7 @@ class _NOKConnectScreenState extends State<NOKConnectScreen> {
                         Text(
                           "찾을 수 없는 고유번호입니다.",
                           style: TextStyle(
-                            fontSize: 16,
+                            fontSize: 15,
                             fontWeight: FontWeight.w500,
                           ),
                           textAlign: TextAlign.center,
@@ -95,6 +113,7 @@ class _NOKConnectScreenState extends State<NOKConnectScreen> {
       setState(() {
         enteredPin = enteredPin.substring(0, enteredPin.length - 1);
       });
+      _speak("지우기");
     }
   }
 
@@ -103,7 +122,6 @@ class _NOKConnectScreenState extends State<NOKConnectScreen> {
     return Scaffold(
       body: Stack(
         children: [
-          // 배경 이미지
           Positioned.fill(
             child: Image.asset(
               'assets/images/background_image.jpg',
@@ -111,10 +129,8 @@ class _NOKConnectScreenState extends State<NOKConnectScreen> {
             ),
           ),
 
-          GlobalGoBackButton(
+          const GlobalGoBackButton(),
 
-          ),
-          // 콘텐츠
           Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
@@ -153,20 +169,41 @@ class _NOKConnectScreenState extends State<NOKConnectScreen> {
                 childAspectRatio: 1.2,
                 padding: const EdgeInsets.all(40),
                 children: [
-                  for (var i = 1; i <= 9; i++) _buildKeyButton(i.toString()),
-                  _buildKeyButton("C", onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => CAMQRScreen()),
-                    );
-                  }),
-                  _buildKeyButton("0"),
-                  _buildKeyButton("⌫", isDelete: true, onPressed: _onDelete),
+                  for (var i = 1; i <= 9; i++)
+                    _buildKeyButton(
+                      Text(
+                        i.toString(),
+                        style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.black),
+                      ),
+                    ),
+                  _buildKeyButton(
+                    Image.asset('assets/images/camera.png', width: 30),
+                    onPressed: () {
+                      _speak("카메라로 등록");
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => CAMQRScreen()),
+                      );
+                    },
+                  ),
+                  _buildKeyButton(
+                    const Text(
+                      "0",
+                      style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.black),
+                    ),
+                  ),
+                  _buildKeyButton(
+                    const Text(
+                      "⌫",
+                      style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.black),
+                    ),
+                    onPressed: _onDelete,
+                  ),
                 ],
               ),
             ],
           ),
-          // ✅ 좌하단 마이크 버튼
+
           GlobalMicButton(
             onPressed: () {
               print("마이크 버튼 눌림 - NokRegistrationPage");
@@ -177,25 +214,21 @@ class _NOKConnectScreenState extends State<NOKConnectScreen> {
     );
   }
 
-  Widget _buildKeyButton(String label, {bool isDelete = false, VoidCallback? onPressed}) {
+  Widget _buildKeyButton(Widget child, {VoidCallback? onPressed}) {
     return GestureDetector(
-      onTap: onPressed ?? () => _onKeyPressed(label),
+      onTap: onPressed ??
+              () {
+            if (child is Text) {
+              _onKeyPressed(child.data!);
+            }
+          },
       child: Container(
         margin: const EdgeInsets.all(10),
         decoration: BoxDecoration(
           shape: BoxShape.circle,
           border: Border.all(color: const Color(0xFFFFC300), width: 1.5),
         ),
-        child: Center(
-          child: Text(
-            label,
-            style: const TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-              color: Colors.black,
-            ),
-          ),
-        ),
+        child: Center(child: child),
       ),
     );
   }

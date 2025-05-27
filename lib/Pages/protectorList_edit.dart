@@ -15,17 +15,11 @@ class ProtectorEditScreen extends StatefulWidget {
 
 class _ProtectorEditScreenState extends State<ProtectorEditScreen> {
   final List<String> protectorNames = [
-    '어머니',
-    '아버지',
-    '딸',
-    '아들',
+    '최준희'
   ];
 
   List<String> contactNotes = [
-    '010-1234-5678',
-    '010-1234-1234',
-    '010-5678-1234',
-    '010-5678-5678',
+    '010-2098-6404',
   ];
 
   void deleteItem(int index) {

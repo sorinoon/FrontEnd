@@ -6,8 +6,9 @@ import '../Pages/NOK_SettingsProvider.dart';
 import '../Pages/LoginModeProvider.dart';
 
 class GlobalGoBackButton extends StatelessWidget {
+  final Widget? targetPage;
 
-  const GlobalGoBackButton({super.key});
+  const GlobalGoBackButton({super.key, this.targetPage});
 
   @override
   Widget build(BuildContext context) {
@@ -26,8 +27,13 @@ class GlobalGoBackButton extends StatelessWidget {
           // 화면 밝기 복원
           await ScreenBrightness().setApplicationScreenBrightness(1.0);
 
-          // 기존 페이지를 닫고 이전 화면으로 돌아가기
-          if (Navigator.canPop(context)) {
+          // 특정 페이지로 이동 혹은 이전 페이지로 이동
+          if (targetPage != null) {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (_) => targetPage!),
+            );
+          } else if (Navigator.canPop(context)) {
             Navigator.pop(context);
           }
         },

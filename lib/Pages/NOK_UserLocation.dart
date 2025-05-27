@@ -1,178 +1,81 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:webview_flutter/webview_flutter.dart';
-import 'NOK_SettingsProvider.dart';
-import 'NOK_Userlist.dart';
-import 'package:geolocator/geolocator.dart';
-import '../widgets/GlobalGoBackButton.dart';
+import '../Pages/NOK_SettingsProvider.dart';
+import '../widgets/GlobalGoBackButtonWhite.dart';
 
-class LocationScreen extends StatefulWidget {
-  const LocationScreen({super.key});
+class CustomMapScreen extends StatelessWidget {
+  final String userName; // 사용자 이름
+  final String mapImage; // 사용자별 지도 이미지 경로
+  final String nearestStation; // 사용자별 가장 가까운 역
 
-  @override
-  _LocationScreenState createState() => _LocationScreenState();
-}
-
-class _LocationScreenState extends State<LocationScreen> {
-  bool isExpanded = false; // 박스 확장 여부를 관리하는 상태
-  late final WebViewController _webViewController;
-  String? latitude;
-  String? longitude;
-
-  List<Map<String, String>> locationList = [
-    {
-      'start': '37.5822,127.0020', // 성신여대입구역 좌표
-      'end': '37.5885,127.0065'    // 한성대학교 좌표
-    },
-  ];
-
-  @override
-  void initState() {
-    super.initState();
-
-    // WebViewController 초기화
-    _webViewController = WebViewController()
-      ..setJavaScriptMode(JavaScriptMode.unrestricted)
-      ..loadFlutterAsset('assets/kakaomap.html'); // HTML 파일 로드
-    //..loadRequest(Uri.parse('http://localhost:8080/map')); // Spring Boot 서버 URL
-
-    // 현재 위치 가져오기
-    getGeoData();
-  }
-
-  Future<void> getGeoData() async {
-    try {
-      LocationPermission permission = await Geolocator.checkPermission();
-      if (permission == LocationPermission.denied) {
-        permission = await Geolocator.requestPermission();
-        if (permission != LocationPermission.whileInUse &&
-            permission != LocationPermission.always) {
-          throw Exception('위치 권한 필요');
-        }
-      }
-
-      // 현재 위치 가져오기
-      Position position = await Geolocator.getCurrentPosition(
-        locationSettings: const LocationSettings(
-          accuracy: LocationAccuracy.high,
-        ),
-      );
-
-      setState(() {
-        latitude = position.latitude.toString();
-        longitude = position.longitude.toString();
-      });
-
-      // WebView에 JavaScript로 위치 데이터 전달
-      _webViewController.runJavaScript('''
-        updateLocation(${position.latitude}, ${position.longitude});
-      ''');
-    } catch (e) {
-      print('위치 정보를 가져오는 데 실패했습니다: $e');
-    }
-    _sendRouteCoordinates();
-  }
-
-  void _sendRouteCoordinates() {
-    final start = locationList[0]['start']!.split(',');
-    final end = locationList[0]['end']!.split(',');
-
-    _webViewController.runJavaScript('''
-      updateRoute(
-        ${double.parse(start[0])}, ${double.parse(start[1])},
-        ${double.parse(end[0])}, ${double.parse(end[1])}
-      );
-    ''');
-  }
+  const CustomMapScreen({
+    super.key,
+    required this.userName,
+    required this.mapImage,
+    required this.nearestStation,
+  });
 
   @override
   Widget build(BuildContext context) {
-    final protectorSettings = Provider.of<NOKSettingsProvider>(context);
-
-    final start = locationList[0]['start']!;
-    final end = locationList[0]['end']!;
+    final fontSizeOffset = Provider.of<NOKSettingsProvider>(context).fontSizeOffset;
 
     return Scaffold(
+      backgroundColor: Colors.white,
       body: Stack(
         children: [
+          // 사용자별 지도 배경 이미지
           Positioned.fill(
-            child: Container(
-              color: Color(0xff80C5A4),
+            child: Image.asset(
+              mapImage,
+              fit: BoxFit.cover,
             ),
           ),
 
-          GlobalGoBackButton(),
-
-          // 카카오 지도 표시
-          Positioned.fill(
-            top: isExpanded ? 210 : 170,
-            child: WebViewWidget(controller: _webViewController),
+          // 마커 중앙 표시
+          Center(
+            child: Image.asset(
+              'assets/images/marker_location.png',
+              width: 50,
+              height: 50,
+            ),
           ),
 
-          // 위치 정보 박스
+          // 상단 제목 바
           Positioned(
-            top: 90,
-            left: 20,
-            right: 20,
-            child: GestureDetector(
-              onTap: () {
-                setState(() {
-                  isExpanded = !isExpanded; // 클릭 시 박스 확장/축소 상태 변경
-                });
-                Provider.of<NOKSettingsProvider>(context, listen: false).vibrate();
-              },
-              child: AnimatedContainer(
-                duration: Duration(milliseconds: 300), // 애니메이션 효과 추가
-                padding: EdgeInsets.symmetric(horizontal: 20, vertical: isExpanded ? 20 : 15),
-                decoration: BoxDecoration(
-                  color: Color(0xffF9F9F9),
-                  borderRadius: BorderRadius.circular(10),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Color(0xff2f2f2f).withValues(alpha: 0.5),
-                      spreadRadius: 2,
-                      blurRadius: 7,
+            top: 0,
+            left: 0,
+            right: 0,
+            child: Container(
+              height: 120,
+              padding: const EdgeInsets.only(top: 10),
+              color: const Color(0xff80C5A4),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    '$userName님의 현재위치',
+                    style: TextStyle(
+                      fontSize: 24 + fontSizeOffset,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
                     ),
-                  ],
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween, // 시작 위치와 끝 위치 간격 유지
-                      children: [
-                        Expanded(
-                          child: Text(
-                            start,
-                            style: TextStyle(
-                              fontSize: 17 + protectorSettings.fontSizeOffset,
-                            ),
-                            overflow:
-                            isExpanded ? TextOverflow.visible : TextOverflow.ellipsis, // 확장 여부에 따라 처리
-                            maxLines: isExpanded ? null : 1, // 확장 시 줄 제한 해제
-                            softWrap: true, // 줄바꿈 활성화
-                          ),
-                        ),
-                        Icon(Icons.arrow_right_alt, size: 25),
-                        Expanded(
-                          child: Text(
-                            end,
-                            style: TextStyle(
-                              fontSize: 17 + protectorSettings.fontSizeOffset,
-                            ),
-                            overflow:
-                            isExpanded ? TextOverflow.visible : TextOverflow.ellipsis, // 확장 여부에 따라 처리
-                            maxLines: isExpanded ? null : 1, // 확장 시 줄 제한 해제
-                            softWrap: true, // 줄바꿈 활성화
-                          ),
-                        ),
-                      ],
+                  ),
+                  SizedBox(height: 5),
+                  Text(
+                    '가장 가까운 역은 $nearestStation입니다',
+                    style: TextStyle(
+                      fontSize: 18 + fontSizeOffset,
+                      fontWeight: FontWeight.w500,
+                      color: Colors.white,
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
             ),
           ),
+
+          // 뒤로가기 버튼 (위치 고정)
+          const GlobalGoBackButtonWhite(),
         ],
       ),
     );

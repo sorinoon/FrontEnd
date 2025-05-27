@@ -27,7 +27,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
     await flutterTts.setLanguage("ko-KR");
     await flutterTts.setSpeechRate(0.5); // 말하는 속도
     await flutterTts.speak(
-      '환영해요!'
+      '환영합니다!'
       '소리눈은 시각장애인을 위한 다양한 편의기능을 제공하는 앱입니다.'
           '보호자 등록을 원한다면 6자리 고유번호나 QR 코드를 통해 등록할 수 있어요. '
     );
@@ -56,7 +56,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
           ),
           GlobalGoBackButton(),
           Padding(
-            padding: const EdgeInsets.only(top: 140.0, left: 20.0, right: 20.0),
+            padding: const EdgeInsets.only(top: 80.0, left: 20.0, right: 20.0),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.start,
               crossAxisAlignment: CrossAxisAlignment.center,
@@ -71,11 +71,11 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                     height: 80,
                   ),
                 ),
-                const SizedBox(height: 20),
+                const SizedBox(height: 5),
 
                 // 환영 인사
                 const Text(
-                  '환영해요!',
+                  '환영합니다!',
                   style: TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
@@ -103,19 +103,19 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                       Text(
                         '소리눈은 시각장애인을 위한 다양한 편의 기능을 제공하는 앱입니다.',
                         textAlign: TextAlign.center,
-                        style: TextStyle(fontSize: 18, color: Colors.black),
+                        style: TextStyle(fontSize: 17, color: Colors.black),
                       ),
                       SizedBox(height: 10),
                       Text(
                         '보호자 등록을 원한다면\n6자리 고유번호나 QR 코드를 통해\n등록할 수 있어요.',
                         textAlign: TextAlign.center,
-                        style: TextStyle(fontSize: 18, color: Colors.black),
+                        style: TextStyle(fontSize: 17, color: Colors.black),
                       ),
                       SizedBox(height: 10),
                       Text(
                         '등록하지 않아도 사용 가능하니\n편한 방식으로 진행하세요!',
                         textAlign: TextAlign.center,
-                        style: TextStyle(fontSize: 18, color: Colors.black),
+                        style: TextStyle(fontSize: 17, color: Colors.black),
                       ),
                     ],
                   ),
@@ -179,7 +179,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                     ),
                   ),
                 ),
-                const SizedBox(height: 20),
+                const SizedBox(height: 90),
 
                 // 하단 설명 텍스트
                 const Text(
