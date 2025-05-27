@@ -1,11 +1,14 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
+import '../Pages/User_SettingsProvider.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_tts/flutter_tts.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
 import 'package:latlong2/latlong.dart';
 import '../widgets/TmapMicButton.dart';
+import '../widgets/GlobalGoBackButton.dart';
 import '../Pages/User_Home.dart';
 import '../Pages/User_Navigate.dart';
 
@@ -141,62 +144,144 @@ class _UserMapPageState extends State<UserMapPage> {
 
   @override
   Widget build(BuildContext context) {
+
     return Scaffold(
-      appBar: AppBar(title: const Text('Tmap 경로 안내')),
+      resizeToAvoidBottomInset: true,
       body: Stack(
         children: [
-          Column(
-            children: [
-              Expanded(
-                flex: 2,
-                child: AndroidView(
-                  viewType: 'TMapNativeView',
-                  layoutDirection: TextDirection.ltr,
-                  creationParams: {},
-                  creationParamsCodec: const StandardMessageCodec(),
-                ),
-              ),
-              Expanded(
-                flex: 1,
-                child: Column(
-                  children: [
-                    Row(
-                      children: [
-                        Expanded(
-                          child: TextField(
-                            controller: _startController,
-                            decoration: const InputDecoration(labelText: '출발지 입력'),
-                          ),
-                        ),
-                      ],
+          Positioned.fill(
+            child: Image.asset(
+              'assets/images/background_image.jpg',
+              fit: BoxFit.cover,
+            ),
+          ),
+
+          SafeArea(
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                return SingleChildScrollView(
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(
+                      minHeight: constraints.maxHeight,
                     ),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: TextField(
-                            controller: _endController,
-                            decoration: const InputDecoration(labelText: '도착지 입력'),
-                          ),
-                        ),
-                      ],
-                    ),
-                    ElevatedButton(
-                      onPressed: _searchRoute,
-                      child: const Text('경로 요청'),
-                    ),
-                    if (_routeTimeText != null)
-                      Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 8.0),
-                        child: Text(
-                          _routeTimeText!,
-                          style: const TextStyle(fontSize: 20),
+                    child: IntrinsicHeight(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            const Center(
+                              child: Text(
+                                'Tmap 경로 안내',
+                                style: TextStyle(
+                                  fontSize: 25,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.black,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 20),
+
+                            Container(
+                              height: 450,
+                              child: AndroidView(
+                                viewType: 'TMapNativeView',
+                                layoutDirection: TextDirection.ltr,
+                                creationParams: {},
+                                creationParamsCodec: const StandardMessageCodec(),
+                              ),
+                            ),
+
+                            TextField(
+                              controller: _startController,
+                              style: const TextStyle(fontSize: 20, color: Colors.black),
+                              decoration: const InputDecoration(
+                                labelText: '출발지 입력',
+                                labelStyle: TextStyle(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                                hintText: '출발지',
+                                floatingLabelBehavior: FloatingLabelBehavior.never,
+                                filled: true,
+                                fillColor: Colors.white,
+                                contentPadding: EdgeInsets.symmetric(
+                                  vertical: 5,
+                                  horizontal: 13,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 5),
+                            TextField(
+                              controller: _endController,
+                              style: const TextStyle(fontSize: 20, color: Colors.black),
+                              decoration: const InputDecoration(
+                                labelText: '도착지 입력',
+                                labelStyle: TextStyle(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                                hintText: '도착지',
+                                floatingLabelBehavior: FloatingLabelBehavior.never,
+                                filled: true,
+                                fillColor: Colors.white,
+                                contentPadding: EdgeInsets.symmetric(
+                                  vertical: 5,
+                                  horizontal: 13,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 20),
+                            ElevatedButton(
+                              onPressed: () {
+                                Provider.of<UserSettingsProvider>(context, listen: false).vibrate();
+                                _searchRoute();
+                              },
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.white,
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 32,
+                                  vertical: 12,
+                                ),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(20),
+                                  side: const BorderSide(color: Color(0xffF8CB38), width: 3),
+                                ),
+                              ),
+                              child: const Text(
+                                '경로 요청',
+                                style: TextStyle(
+                                  fontSize: 20,
+                                  color: Colors.black,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                            if (_routeTimeText != null)
+                              Padding(
+                                padding: const EdgeInsets.symmetric(vertical: 12.0),
+                                child: Center(
+                                  child: Text(
+                                    _routeTimeText!,
+                                    style: const TextStyle(
+                                      fontSize: 20,
+                                      color: Colors.black,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            const SizedBox(height: 10),
+                          ],
                         ),
                       ),
-                  ],
-                ),
-              ),
-            ],
+                    ),
+                  ),
+                );
+              },
+            ),
           ),
+
+          GlobalGoBackButton(targetPage: UserHomeScreen()),
           TmapMicButton(
               onPressed: () {},
               customCommandHandler: (command, tts, context) async {

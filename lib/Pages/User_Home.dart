@@ -9,6 +9,7 @@ import '../Pages/User_SettingsProvider.dart';
 import '../widgets/GlobalMicButton.dart';
 import '../widgets/GlobalGoBackButton.dart';
 import '../Pages/User_Map.dart';
+import '../Pages/Login.dart';
 
 class UserHomeScreen extends StatefulWidget {
   const UserHomeScreen({super.key});
@@ -50,9 +51,7 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
               fit: BoxFit.cover,
             ),
           ),
-          GlobalGoBackButton(
-
-          ),
+          GlobalGoBackButton(targetPage: LoginScreen()),
 
           // 버튼들 정렬 - 중앙 기준
           Column(

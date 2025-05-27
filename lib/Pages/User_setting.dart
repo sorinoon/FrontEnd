@@ -57,7 +57,7 @@ class _UserSettingScreenState extends State<UserSettingScreen> {
             ),
           ),
 
-          GlobalGoBackButton(),
+          GlobalGoBackButton(targetPage: UserHomeScreen()),
 
           // 제목
           Positioned(

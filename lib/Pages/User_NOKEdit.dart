@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_tts/flutter_tts.dart';
+
 import '../widgets/GlobalMicButton.dart';
 import '../widgets/GlobalGoBackButton.dart';
-import '../Pages/User_NOKList.dart';
 import '../Pages/User_SettingsProvider.dart';
+import '../Pages/ProtectorListProvider.dart';
+import '../Pages/User_NOKList.dart'; // ProtectorListScreen 정의된 곳
 
 class ProtectorEditScreen extends StatefulWidget {
   const ProtectorEditScreen({super.key});
@@ -14,30 +16,7 @@ class ProtectorEditScreen extends StatefulWidget {
 }
 
 class _ProtectorEditScreenState extends State<ProtectorEditScreen> {
-  final List<String> protectorNames = [
-    '최준희'
-  ];
-
-  List<String> contactNotes = [
-    '010-2098-6404',
-  ];
-
-  void deleteItem(int index) {
-    setState(() {
-      protectorNames.removeAt(index);
-      contactNotes.removeAt(index);
-    });
-  }
-
-  Color getCircleColor(int index) {
-    if (index == 0) {
-      return Color(0xFFF8CB38);
-    } else {
-      return Color(0xFFD6D6D6);
-    }
-  }
-
-  late FlutterTts _flutterTts; // TTS 객체 선언
+  late FlutterTts _flutterTts;
 
   @override
   void initState() {
@@ -48,17 +27,24 @@ class _ProtectorEditScreenState extends State<ProtectorEditScreen> {
   @override
   void dispose() {
     super.dispose();
-    _flutterTts.stop(); // 앱 종료 시 TTS 멈추기
+    _flutterTts.stop();
   }
 
-  // TTS로 텍스트 읽기
   Future<void> _speak(String text) async {
     await _flutterTts.speak(text);
+  }
+
+  Color getCircleColor(int index) {
+    return index == 0 ? const Color(0xFFF8CB38) : const Color(0xFFD6D6D6);
   }
 
   @override
   Widget build(BuildContext context) {
     final fontSizeOffset = Provider.of<UserSettingsProvider>(context).fontSizeOffset;
+    final protectorProvider = Provider.of<ProtectorListProvider>(context);
+
+    final protectorNames = protectorProvider.protectorNames;
+    final contactNotes = protectorProvider.contactNotes;
 
     return Scaffold(
       body: Stack(
@@ -70,18 +56,15 @@ class _ProtectorEditScreenState extends State<ProtectorEditScreen> {
             ),
           ),
 
-          GlobalGoBackButton(),
+          const GlobalGoBackButton(),
 
-          // 제목
           Positioned(
             top: 40,
             left: 0,
             right: 0,
             child: Center(
               child: GestureDetector(
-                onTap: () {
-                  _speak("보호자 목록 : 연락처 삭제");
-                },
+                onTap: () => _speak("보호자 목록 : 연락처 삭제"),
                 child: Text(
                   '보호자 목록',
                   style: TextStyle(
@@ -93,7 +76,6 @@ class _ProtectorEditScreenState extends State<ProtectorEditScreen> {
               ),
             ),
           ),
-          // 부제목
           Positioned(
             top: 77,
             left: 0,
@@ -103,7 +85,7 @@ class _ProtectorEditScreenState extends State<ProtectorEditScreen> {
                 '연락처 삭제',
                 style: TextStyle(
                   fontSize: 15 + fontSizeOffset,
-                  color: Color(0xff848484),
+                  color: const Color(0xff848484),
                 ),
               ),
             ),
@@ -111,15 +93,15 @@ class _ProtectorEditScreenState extends State<ProtectorEditScreen> {
           SafeArea(
             child: Column(
               children: [
-                SizedBox(height: 100),
+                const SizedBox(height: 100),
                 Expanded(
                   child: ListView.builder(
                     itemCount: protectorNames.length,
                     itemBuilder: (context, index) {
                       return Column(
                         children: [
-                          buildListItem(index),
-                          Divider(
+                          buildListItem(context, index, protectorNames, contactNotes),
+                          const Divider(
                             color: Color(0xff6B6B6B),
                             thickness: 1,
                             indent: 15,
@@ -133,12 +115,9 @@ class _ProtectorEditScreenState extends State<ProtectorEditScreen> {
               ],
             ),
           ),
-          GlobalMicButton(
-            onPressed: () {
-              // 마이크 버튼 눌렀을 때 동작 정의
-              print('마이크 버튼 클릭');
-            },
-          ),
+          GlobalMicButton(onPressed: () {
+            print('마이크 버튼 클릭');
+          }),
           Positioned(
             bottom: 48,
             right: 43,
@@ -146,14 +125,14 @@ class _ProtectorEditScreenState extends State<ProtectorEditScreen> {
               onTap: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => ProtectorListScreen()),
+                  MaterialPageRoute(builder: (context) => const ProtectorListScreen()),
                 );
                 Provider.of<UserSettingsProvider>(context, listen: false).vibrate();
               },
               child: Container(
                 width: 69,
                 height: 69,
-                decoration: BoxDecoration(
+                decoration: const BoxDecoration(
                   color: Color(0xFFFFE48A),
                   shape: BoxShape.circle,
                   boxShadow: [
@@ -164,7 +143,7 @@ class _ProtectorEditScreenState extends State<ProtectorEditScreen> {
                     ),
                   ],
                 ),
-                child: Icon(
+                child: const Icon(
                   Icons.check,
                   color: Colors.black,
                   size: 36,
@@ -177,11 +156,12 @@ class _ProtectorEditScreenState extends State<ProtectorEditScreen> {
     );
   }
 
-  Widget buildListItem(int index) {
+  Widget buildListItem(BuildContext context, int index, List<String> protectorNames, List<String> contactNotes) {
     final fontSizeOffset = Provider.of<UserSettingsProvider>(context).fontSizeOffset;
+    final provider = Provider.of<ProtectorListProvider>(context, listen: false);
 
     return Container(
-      margin: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+      margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
       child: Row(
         children: [
           Container(
@@ -192,7 +172,7 @@ class _ProtectorEditScreenState extends State<ProtectorEditScreen> {
               shape: BoxShape.circle,
             ),
           ),
-          SizedBox(width: 15),
+          const SizedBox(width: 15),
           SizedBox(
             width: 100,
             child: Text(
@@ -200,24 +180,20 @@ class _ProtectorEditScreenState extends State<ProtectorEditScreen> {
               style: TextStyle(fontSize: 22 + fontSizeOffset, fontWeight: FontWeight.bold),
             ),
           ),
-          Container(
+          SizedBox(
             width: 140,
-            alignment: Alignment.centerLeft,
             child: Text(
               contactNotes[index],
-              style: TextStyle(fontSize: 16 + fontSizeOffset, color: Color(0xff4E4E4E)),
+              style: TextStyle(fontSize: 16 + fontSizeOffset, color: const Color(0xff4E4E4E)),
             ),
           ),
-          SizedBox(width: 38),
+          const SizedBox(width: 38),
           GestureDetector(
             onTap: () {
               Provider.of<UserSettingsProvider>(context, listen: false).vibrate();
-              deleteItem(index);
+              provider.deleteProtector(index); // ✅ provider를 통해 삭제
             },
-            child: Icon(
-              Icons.delete,
-              size: 30,
-            ),
+            child: const Icon(Icons.delete, size: 30),
           ),
         ],
       ),

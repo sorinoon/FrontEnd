@@ -92,7 +92,7 @@ class CameraAnalyzeState extends State<CameraAnalyzeScreen> {
               },
             ),
 
-            GlobalGoBackButtonWhite(),
+            GlobalGoBackButtonWhite(targetPage: UserHomeScreen()),
 
             Positioned(
               top: 43,
