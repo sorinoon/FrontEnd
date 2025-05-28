@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -11,6 +12,7 @@ import '../widgets/TmapMicButton.dart';
 import '../widgets/GlobalGoBackButton.dart';
 import '../Pages/User_Home.dart';
 import '../Pages/User_Navigate.dart';
+import 'package:geolocator/geolocator.dart';
 
 class UserMapPage extends StatefulWidget {
   const UserMapPage({super.key});
@@ -28,6 +30,45 @@ class _UserMapPageState extends State<UserMapPage> {
 
   final FlutterTts flutterTts = FlutterTts();
 
+  StreamSubscription<Position>? _positionStream;
+
+  final Distance _distance = Distance();
+  int _lastGuidedIndex = -1;
+  bool _hasDeviated = false;
+  double? _startLat;
+  double? _startLon;
+
+
+  Future<void> _initLocation() async {
+    bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    if (!serviceEnabled) {
+      await Geolocator.openLocationSettings();
+      return;
+    }
+
+    LocationPermission permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+      if (permission == LocationPermission.denied) return;
+    }
+
+    final current = await Geolocator.getCurrentPosition(
+      desiredAccuracy: LocationAccuracy.high,
+    );
+
+    print('✅ 초기 위치: ${current.latitude}, ${current.longitude}');
+
+
+    await platform.invokeMethod('onMapReady'); // 네이티브에서 구현해도 되고 무시돼도 됨
+    await Future.delayed(Duration(seconds: 2)); // ✅ 2초 정도 대기
+    await platform.invokeMethod('updateUserLocation', {
+      'latitude': current.latitude,
+      'longitude': current.longitude,
+    });
+  }
+
+
+
   String? _routeTimeText;
   List<LatLng> _routePoints = [];
 
@@ -35,6 +76,19 @@ class _UserMapPageState extends State<UserMapPage> {
     await flutterTts.setLanguage("ko-KR");
     await flutterTts.setSpeechRate(0.5);
     await flutterTts.speak(text);
+  }
+
+  void _checkDeviation(Position position) async {
+    final userPos = LatLng(position.latitude, position.longitude);
+    final isOnRoute = _routePoints.any((point) {
+      final dist = _distance(userPos, point);
+      return dist < 25.0; // 25m 이내면 경로 위
+    });
+
+    if (!isOnRoute && !_hasDeviated) {
+      _hasDeviated = true;
+      await _speak("경로를 이탈했습니다. 재탐색이 필요합니다");
+    }
   }
 
   Future<Map<String, double>?> _getCoordinates(String address) async {
@@ -61,12 +115,21 @@ class _UserMapPageState extends State<UserMapPage> {
     final start = _startController.text.trim();
     final end = _endController.text.trim();
 
+
     if (start.isEmpty || end.isEmpty) {
       await _speak("출발지와 도착지를 모두 입력하세요");
       return;
     }
 
-    final startCoord = await _getCoordinates(start);
+    Map<String, double>? startCoord;
+    if (_startController.text == "현위치" && _startLat != null && _startLon != null) {
+      startCoord = {
+        'lat': _startLat!,
+        'lon': _startLon!,
+      };
+    } else {
+      startCoord = await _getCoordinates(_startController.text.trim());
+    }
     final endCoord = await _getCoordinates(end);
 
     if (startCoord == null || endCoord == null) {
@@ -111,6 +174,10 @@ class _UserMapPageState extends State<UserMapPage> {
           _routePoints.add(LatLng(coords[1], coords[0]));
         }
       }
+      _positionStream?.cancel();
+      _positionStream = Geolocator.getPositionStream().listen((position) {
+        _checkDeviation(position);
+      });
     } catch (e) {
       print('❌ 네이티브 호출 오류: $e');
     }
@@ -119,8 +186,13 @@ class _UserMapPageState extends State<UserMapPage> {
   @override
   void initState() {
     super.initState();
+    //_initLocation();
     platform.setMethodCallHandler((call) async {
-      if (call.method == "routeResult") {
+      if (call.method == "onMapReady") {
+        print("Flutter에서 지도 준비됨 수신");
+        await Future.delayed(const Duration(milliseconds: 800));
+        await _initLocation();
+      } else if (call.method == "routeResult") {
         final result = call.arguments.toString();
         setState(() {
           _routeTimeText = result;
@@ -130,20 +202,37 @@ class _UserMapPageState extends State<UserMapPage> {
     });
   }
 
+  @override
+  void dispose() {
+    _positionStream?.cancel();
+    flutterTts.stop(); // 혹시라도 TTS가 살아있다면 중지
+    super.dispose();
+  }
+
   void updateInputField(String field, String value) async {
-    if (field.contains("출발")) {
-      _startController.text = value;
-      await _speak("$value 를 출발지로 설정했습니다");
-    } else if (field.contains("도착")) {
-      _endController.text = value;
-      await _speak("$value 를 도착지로 설정했습니다");
+    if (value.contains("현위치")) {
+      try {
+        final current = await Geolocator.getCurrentPosition(
+          desiredAccuracy: LocationAccuracy.high,
+        );
+        if (field.contains("출발")) {
+          _startController.text = "현위치";
+          _startLat = current.latitude;
+          _startLon = current.longitude;
+          await _speak("현재 위치를 출발지로 설정했습니다");
+        } else if (field.contains("도착")) {
+          _endController.text = value;
+          await _speak("$value 를 도착지로 설정했습니다");
+        }
+      } catch (e) {
+        await _speak("현재 위치를 가져오는 데 실패했습니다");
+      }
     }
   }
 
   @override
   Widget build(BuildContext context) {
     final isKeyboardVisible = MediaQuery.of(context).viewInsets.bottom > 0;
-    final UserSettings = Provider.of<UserSettingsProvider>(context);
 
     return Scaffold(
       resizeToAvoidBottomInset: true,
@@ -169,21 +258,14 @@ class _UserMapPageState extends State<UserMapPage> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
-                            SizedBox(height: 6 - UserSettings.fontSizeOffset*0.8),
-                            Center(
-                              child: GestureDetector(
-                                onTap: () {
-                                  _speak("Tmap 경로 안내");
-                                  Provider.of<UserSettingsProvider>(
-                                      context, listen: false).vibrate();
-                                },
-                                child: Text(
-                                  'Tmap 경로 안내',
-                                  style: TextStyle(
-                                    fontSize: 25 + UserSettings.fontSizeOffset,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.black,
-                                  ),
+                            const SizedBox(height: 6),
+                            const Center(
+                              child: Text(
+                                'Tmap 경로 안내',
+                                style: TextStyle(
+                                  fontSize: 25,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.black,
                                 ),
                               ),
                             ),
@@ -265,8 +347,8 @@ class _UserMapPageState extends State<UserMapPage> {
                               ),
                               child: Text(
                                 _routeTimeText == null ? '경로 탐색' : '안내 시작',
-                                style: TextStyle(
-                                  fontSize: 20 + UserSettings.fontSizeOffset,
+                                style: const TextStyle(
+                                  fontSize: 20,
                                   color: Colors.black,
                                   fontWeight: FontWeight.bold,
                                 ),

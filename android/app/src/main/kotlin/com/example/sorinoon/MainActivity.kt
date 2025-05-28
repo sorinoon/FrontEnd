@@ -9,6 +9,7 @@ class MainActivity : FlutterActivity() {
 
     private lateinit var tMapViewInstance: TMapNativeView
     private lateinit var methodChannel: MethodChannel
+    private val pendingUserLocation: MutableList<Pair<Double, Double>> = mutableListOf()
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
@@ -26,20 +27,34 @@ class MainActivity : FlutterActivity() {
             )
 
         methodChannel.setMethodCallHandler { call, result ->
-            if (call.method == "drawRoute") {
-                val startLat = call.argument<Double>("startLat") ?: 0.0
-                val startLon = call.argument<Double>("startLon") ?: 0.0
-                val endLat = call.argument<Double>("endLat") ?: 0.0
-                val endLon = call.argument<Double>("endLon") ?: 0.0
-                tMapViewInstance.setRoute(startLat, startLon, endLat, endLon)
-                result.success("경로 설정 완료")
-            } else {
-                result.notImplemented()
+            when (call.method) {
+                "drawRoute" -> {
+                    val startLat = call.argument<Double>("startLat") ?: 0.0
+                    val startLon = call.argument<Double>("startLon") ?: 0.0
+                    val endLat = call.argument<Double>("endLat") ?: 0.0
+                    val endLon = call.argument<Double>("endLon") ?: 0.0
+                    tMapViewInstance.setRoute(startLat, startLon, endLat, endLon)
+                    result.success("경로 설정 완료")
+                }
+
+                "updateUserLocation" -> {
+                    val lat = call.argument<Double>("latitude")
+                    val lon = call.argument<Double>("longitude")
+                    if (lat != null && lon != null) {
+                        tMapViewInstance.updateUserLocation(lat, lon)
+                        result.success("위치 갱신 완료")
+                    } else {
+                        result.error("INVALID_ARGUMENTS", "위도/경도 누락됨", null)
+                    }
+                }
+                "onMapReady" -> {
+                    // Flutter에서 호출할 때 대비용 (실제 동작 안 해도 됨)
+                    result.success("ok")
+                }
+
+
+                else -> result.notImplemented()
             }
         }
     }
 }
-
-
-
-

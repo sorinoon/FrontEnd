@@ -14,8 +14,9 @@ import 'package:geolocator/geolocator.dart';
 import 'package:latlong2/latlong.dart';
 
 import '../Pages/User_SettingsProvider.dart';
-import '../widgets/GlobalGoBackButton.dart';
+import '../widgets/GlobalGoBackButtonWhite.dart';
 import '../widgets/GlobalMicButton.dart';
+import 'package:http/http.dart' as http;
 
 class PageNavigate extends StatefulWidget {
   final List<LatLng> route;
@@ -42,6 +43,8 @@ class _PageNavigateState extends State<PageNavigate> with WidgetsBindingObserver
   StreamSubscription<Position>? _positionStream;
   final Distance _distance = Distance();
   int _lastGuidedIndex = -1;
+
+  bool _hasDeviated = false;
 
   @override
   void initState() {
@@ -94,32 +97,23 @@ class _PageNavigateState extends State<PageNavigate> with WidgetsBindingObserver
     _flutterTts.setSpeechRate(0.5);
 
     _channel = WebSocketChannel.connect(
-      Uri.parse('ws://223.194.157.122:8000/ws/detect/'),
+      Uri.parse('ws://223.194.138.73:8000/ws/detect/'),
     );
 
-    // _channel!.stream.listen((message) async {
-    //   final data = jsonDecode(message);
-    //   final warning = data['warning'];
-    //
-    //   if (warning != null && warning.isNotEmpty && !_isSpeaking) {
-    //     _isSpeaking = true;
-    //     await _flutterTts.speak(warning);
-    //     _flutterTts.setCompletionHandler(() {
-    //       _isSpeaking = false;
-    //     });
-    //   }
-    // });
     _channel!.stream.listen((message) async {
       final data = jsonDecode(message);
       final warning = data['warning'];
 
-      if (warning != null && warning.isNotEmpty) {
+      if (warning != null && warning.isNotEmpty && !_isSpeaking) {
+        _isSpeaking = true;
         await _flutterTts.speak(warning);
+        _flutterTts.setCompletionHandler(() {
+          _isSpeaking = false;
+        });
       }
     });
 
-
-    _sendTimer = Timer.periodic(Duration(milliseconds: 100), (_) async {
+    _sendTimer = Timer.periodic(Duration(milliseconds: 300), (_) async {
       if (latestFrame == null) return;
       final image = latestFrame!;
       latestFrame = null;
@@ -165,9 +159,65 @@ class _PageNavigateState extends State<PageNavigate> with WidgetsBindingObserver
     });
   }
 
+  Future<void> _recalculateRoute(Position userPosition) async {
+    // 도착지 다시 설정 (기존 목적지 유지한다고 가정)
+    final dest = widget.route.last; // 원래 목적지
+
+    final response = await http.post(
+      Uri.parse('https://apis.openapi.sk.com/tmap/routes/pedestrian?version=1'),
+      headers: {'Content-Type': 'application/json', 'appKey': 'huZN3mGcZh2sdd283mTHF8D4AVCBYOVB6v6umT6T'},
+      body: jsonEncode({
+        "startX": userPosition.longitude,
+        "startY": userPosition.latitude,
+        "endX": dest.longitude,
+        "endY": dest.latitude,
+        "reqCoordType": "WGS84GEO",
+        "resCoordType": "WGS84GEO",
+      }),
+    );
+
+    final data = jsonDecode(response.body);
+    final features = data['features'];
+    final newRoute = <LatLng>[];
+
+    for (var f in features) {
+      final geometry = f['geometry'];
+      if (geometry['type'] == 'Point') {
+        final coords = geometry['coordinates'];
+        newRoute.add(LatLng(coords[1], coords[0]));
+      }
+    }
+
+    setState(() {
+      widget.route.clear();
+      widget.route.addAll(newRoute);
+      _lastGuidedIndex = -1;
+      _hasDeviated = false;
+    });
+
+    await _flutterTts.speak("새로운 경로로 안내를 시작합니다.");
+  }
+
+
   void _checkGuidance(Position position) async {
     for (int i = _lastGuidedIndex + 1; i < widget.route.length; i++) {
       final userPos = LatLng(position.latitude, position.longitude);
+      bool isOnRoute = widget.route.any((point) {
+        final dist = _distance(userPos, point);
+        return dist < 25.0; // 25m 이내면 경로 위
+      });
+
+      if (!isOnRoute && !_hasDeviated) {
+        _hasDeviated = true;
+        if (!_isSpeaking) {
+          _isSpeaking = true;
+          await _flutterTts.speak("경로를 이탈했습니다. 재탐색이 필요합니다");
+          _flutterTts.setCompletionHandler(() {
+            _isSpeaking = false;
+          });
+        }
+        _recalculateRoute(position);
+      }
       final routePos = widget.route[i];
 
       final distanceToPoint = _distance(userPos, routePos);
@@ -207,7 +257,7 @@ class _PageNavigateState extends State<PageNavigate> with WidgetsBindingObserver
   }
 
   void _callProtector() async {
-    final phoneUri = Uri(scheme: 'tel', path: '010-2098-6404');
+    final phoneUri = Uri(scheme: 'tel', path: '010-1234-5678');
     if (await canLaunchUrl(phoneUri)) {
       await launchUrl(phoneUri);
     } else {
@@ -242,7 +292,7 @@ class _PageNavigateState extends State<PageNavigate> with WidgetsBindingObserver
           : Stack(
         children: [
           Positioned.fill(child: CameraPreview(_cameraController!)),
-          GlobalGoBackButton(),
+          GlobalGoBackButtonWhite(),
           Positioned(
             top: 60,
             left: 0,
@@ -276,7 +326,7 @@ class _PageNavigateState extends State<PageNavigate> with WidgetsBindingObserver
             child: Align(
               alignment: Alignment.bottomCenter,
               child: Padding(
-                padding: const EdgeInsets.only(bottom: 24),
+                padding: const EdgeInsets.only(bottom: 35),
                 child: GestureDetector(
                   onTap: _callProtector,
                   child: Container(
