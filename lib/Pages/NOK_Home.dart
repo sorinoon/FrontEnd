@@ -47,7 +47,7 @@ class NOKHomeScreen extends StatelessWidget {
               SizedBox(height: 41- protectorSettings.fontSizeOffset * 4),
               _buildMenuButton(
                 icon: Icons.qr_code_2,
-                label: 'QR 버튼',
+                label: 'QR',
                 onPressed: () {
                   Navigator.push(
                     context,

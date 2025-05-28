@@ -31,9 +31,6 @@ import android.view.animation.AlphaAnimation
 import android.view.ViewGroup
 
 
-
-
-
 class TMapNativeView(
     private val context: Context,
     private val methodChannel: MethodChannel

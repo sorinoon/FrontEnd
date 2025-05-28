@@ -73,6 +73,9 @@ class _SettingMicButtonState extends State<SettingMicButton> {
     } else if (command.contains("글자")) {
       settings.toggleFontSize(!settings.isFontSizeIncreased);
       await _speak("글자 크기를 ${settings.isFontSizeIncreased ? '크게' : '작게'} 설정했습니다");
+    } else if (command.contains('뒤로') || command.contains('이전')) {
+      await _speak("이전 페이지로 이동할게요");
+      if (mounted) Navigator.pop(context);
     } else if (command.contains("소리 눈") || command.contains("소리눈") || command.contains("우리는")) {
       await _speak("이 페이지는 진동 모드, 저전력 모드, 글자 크기 설정이 가능합니다. 각 기능명을 말하면 토글할 수 있습니다.");
     } else if (command.contains("명령어")) {

@@ -18,7 +18,7 @@ class _SplashScreenState extends State<SplashScreen> {
     super.initState();
 
     // 3.5초 후 흐려지기 시작
-    Future.delayed(const Duration(milliseconds: 3800), () {
+    Future.delayed(const Duration(milliseconds: 4500), () {
       setState(() => _overlayOpacity = 0.0);
 
       // 2초 동안 흐려진 후 Login 페이지로 이동
