@@ -69,6 +69,7 @@ flutter:
     - assets/images/map3.png
     - assets/lottie/Voice.json
     - assets/lottie/VoiceOut.json
+    - assets/lottie/Splash.json
     - assets/images/camera.png
     - assets/lottie/splash_fill.json
 

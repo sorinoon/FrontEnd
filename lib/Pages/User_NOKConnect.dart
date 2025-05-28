@@ -17,7 +17,8 @@ class NOKConnectScreen extends StatefulWidget {
 class _NOKConnectScreenState extends State<NOKConnectScreen> {
   final FlutterTts flutterTts = FlutterTts();
 
-  final String password = "235478";
+  //final String password = "235478";
+  final String password = "630528";
   String enteredPin = "";
 
   @override
@@ -31,7 +32,7 @@ class _NOKConnectScreenState extends State<NOKConnectScreen> {
     await flutterTts.speak(text);
   }
 
-  void _onKeyPressed(String value) {
+  /*void _onKeyPressed(String value) {
     if (enteredPin.length < 6) {
       setState(() {
         enteredPin += value;
@@ -41,7 +42,23 @@ class _NOKConnectScreenState extends State<NOKConnectScreen> {
     if (enteredPin.length == 6) {
       _validatePin();
     }
+  }*/
+  void _onKeyPressed(String value) {
+    if (enteredPin.length >= 6) return;
+
+    setState(() {
+      enteredPin += value;
+
+      if (enteredPin.length == 6) {
+        Future.delayed(Duration(milliseconds: 300), () {
+          _validatePin();
+        });
+      }
+    });
+
+    _speak(value);
   }
+
 
   void _validatePin() {
     if (enteredPin == password) {

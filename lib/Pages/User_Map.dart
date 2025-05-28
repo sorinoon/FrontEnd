@@ -143,6 +143,7 @@ class _UserMapPageState extends State<UserMapPage> {
   @override
   Widget build(BuildContext context) {
     final isKeyboardVisible = MediaQuery.of(context).viewInsets.bottom > 0;
+    final UserSettings = Provider.of<UserSettingsProvider>(context);
 
     return Scaffold(
       resizeToAvoidBottomInset: true,
@@ -168,14 +169,21 @@ class _UserMapPageState extends State<UserMapPage> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
-                            const SizedBox(height: 6),
-                            const Center(
-                              child: Text(
-                                'Tmap 경로 안내',
-                                style: TextStyle(
-                                  fontSize: 25,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.black,
+                            SizedBox(height: 6 - UserSettings.fontSizeOffset*0.8),
+                            Center(
+                              child: GestureDetector(
+                                onTap: () {
+                                  _speak("Tmap 경로 안내");
+                                  Provider.of<UserSettingsProvider>(
+                                      context, listen: false).vibrate();
+                                },
+                                child: Text(
+                                  'Tmap 경로 안내',
+                                  style: TextStyle(
+                                    fontSize: 25 + UserSettings.fontSizeOffset,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.black,
+                                  ),
                                 ),
                               ),
                             ),
@@ -257,8 +265,8 @@ class _UserMapPageState extends State<UserMapPage> {
                               ),
                               child: Text(
                                 _routeTimeText == null ? '경로 탐색' : '안내 시작',
-                                style: const TextStyle(
-                                  fontSize: 20,
+                                style: TextStyle(
+                                  fontSize: 20 + UserSettings.fontSizeOffset,
                                   color: Colors.black,
                                   fontWeight: FontWeight.bold,
                                 ),

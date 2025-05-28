@@ -13,7 +13,8 @@ class CAMQRScreen extends StatefulWidget {
 class _CAMQRState extends State<CAMQRScreen> {
   MobileScannerController controller = MobileScannerController();
   final FlutterTts flutterTts = FlutterTts();
-  final String validCode = "123456"; // 비교할 QR 코드 (6자리 숫자)
+  //final String validCode = "123456"; // 비교할 QR 코드 (6자리 숫자)
+  final String validCode = "630528"; // 비교할 QR 코드 (6자리 숫자)
   bool _isScanned = false;
 
   Future<void> _speak(String text) async {
