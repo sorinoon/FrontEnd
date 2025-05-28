@@ -1,0 +1,91 @@
+name: sorinoon
+description: "A new Flutter project."
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.7.0
+
+dependencies:
+  flutter:
+    sdk: flutter
+  camera: ^0.11.1
+  geolocator: ^14.0.0
+  http: ^1.3.0
+  kakao_flutter_sdk_user: ^1.9.7+3
+  lottie: ^3.3.1
+  path_provider: any
+  permission_handler: ^12.0.0+1
+  provider: ^6.1.2
+  qr_flutter: ^4.1.0
+  screenshot: ^3.0.0
+  share_plus: ^11.0.0
+  webview_flutter: ^4.10.0
+  cupertino_icons: ^1.0.8
+  mobile_scanner: ^7.0.0
+  screen_brightness: ^2.1.2
+  url_launcher: ^6.3.1
+  speech_to_text: ^7.0.0
+  flutter_tts: ^4.2.2
+  web_socket_channel: ^3.0.3
+  image_picker: ^1.0.7
+  just_audio: ^0.10.3
+  image: any
+  http_parser: ^4.0.2
+  audioplayers: ^5.2.1
+  latlong2: ^0.9.0
+  flutter_launcher_icons: ^0.13.1
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0
+
+flutter:
+  uses-material-design: true
+
+  assets:
+    - assets/images/background.png
+    - assets/images/card.png
+    - assets/images/kakaoicon.png
+    - assets/images/profile.png
+    - assets/images/camBtn.png
+    - assets/images/micBtn.png
+    - assets/lottie/loadingY.json
+    - assets/images/background_image.jpg
+    - assets/images/kakao_logo.jpg
+    - assets/images/goBack_logo.jpg
+    - assets/images/download.png
+    - assets/images/qr.png
+    - assets/images/my_location_icon.png
+    - assets/kakaomap.html
+    - assets/images/Arrow_back.png
+    - assets/images/logo_y.png
+    - assets/images/logo_g.png
+    - assets/tmap_map.html
+    - assets/images/marker_location.png
+    - assets/images/map1.png
+    - assets/images/map2.png
+    - assets/images/map3.png
+    - assets/lottie/Voice.json
+    - assets/lottie/VoiceOut.json
+    - assets/lottie/Splash.json
+    - assets/images/camera.png
+    - assets/lottie/splash_fill.json
+
+  fonts:
+    - family: KoddiUDOnGothic
+      fonts:
+        - asset: assets/fonts/KoddiUDOnGothic-Regular.ttf
+          weight: 500
+        - asset: assets/fonts/KoddiUDOnGothic-Bold.ttf
+          weight: 800
+        - asset: assets/fonts/KoddiUDOnGothic-ExtraBold.ttf
+          weight: 900
+
+flutter_icons:
+    android: true
+    ios: true
+    image_path: "assets/images/app_icon.png"
+    adaptive_icon_background: null  # <- adaptive icon 끄기
+    adaptive_icon_foreground: null
