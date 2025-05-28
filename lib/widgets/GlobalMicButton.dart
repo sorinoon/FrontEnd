@@ -13,6 +13,7 @@ import '../Pages/User_Setting.dart';
 import '../Pages/User_NOKConnect.dart';
 import '../Pages/User_NOKList.dart';
 import 'package:lottie/lottie.dart';
+import '../Pages/CAM_QR.dart';
 
 class GlobalMicButton extends StatefulWidget {
   final VoidCallback onPressed;
@@ -118,14 +119,16 @@ class _GlobalMicButtonState extends State<GlobalMicButton> {
       await navigate(NOKConnectScreen(), "보호자 등록 페이지로 이동할게요");
     } else if (command.contains('목록')) {
       await navigate(ProtectorListScreen(), "보호자 목록 페이지로 이동할게요");
-    } else if (command.contains('뒤로') || command.contains('이전')) {
+    } else if (command.contains('카메라') || (command.contains('QR'))) {
+      await navigate(CAMQRScreen(), "보호자 QR 등록 페이지로 이동할게요");
+    }else if (command.contains('뒤로') || command.contains('이전')) {
       await _speak("이전 페이지로 이동할게요");
       if (mounted) Navigator.pop(context);
     } else if (command.contains("소리 눈") || command.contains("소리눈") || command.contains("우리는") || command.contains("우리눈") || command.contains("우리 눈")){
-        await _speak("소리눈 어플리케이션에서는 설정, 안내, 인식, 홈, 등록, 목록 같은 음성 명령어로 각각의 페이지로 이동할 수 있습니다."
-            "이전 이라고 말하면 이전 페이지로 돌아갈 수 있고, 고마워, 됐어, 종료라고 말하면 음성 안내가 종료됩니다."
-            "지금 어떤 페이지에 있는지 헷갈리신다면 언제든지 소리눈이라고 불러주세요."
-            "현재 페이지가 무엇인지와 함께, 사용할 수 있는 음성 명령어를 친절하게 안내해드립니다.");
+      await _speak("소리눈 어플리케이션에서는 설정, 안내, 인식, 홈, 등록, 목록 같은 음성 명령어로 각각의 페이지로 이동할 수 있습니다."
+          "이전 이라고 말하면 이전 페이지로 돌아갈 수 있고, 고마워, 됐어, 종료라고 말하면 음성 안내가 종료됩니다."
+          "지금 어떤 페이지에 있는지 헷갈리신다면 언제든지 소리눈이라고 불러주세요."
+          "현재 페이지가 무엇인지와 함께, 사용할 수 있는 음성 명령어를 친절하게 안내해드립니다.");
     } else if (command.contains('음성 명령어') || command.contains('명령어')) {
       await _speak("지금 사용할 수 있는 명령어는 설정. 안내. 인식. 홈. 등록. 목록. 소리눈. 이전, 명령어. 음성 명령어가 있습니다");
     } else if (command.contains('고마워') ||

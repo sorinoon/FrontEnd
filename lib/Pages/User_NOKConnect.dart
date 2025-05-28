@@ -32,17 +32,6 @@ class _NOKConnectScreenState extends State<NOKConnectScreen> {
     await flutterTts.speak(text);
   }
 
-  /*void _onKeyPressed(String value) {
-    if (enteredPin.length < 6) {
-      setState(() {
-        enteredPin += value;
-      });
-      _speak(value);
-    }
-    if (enteredPin.length == 6) {
-      _validatePin();
-    }
-  }*/
   void _onKeyPressed(String value) {
     if (enteredPin.length >= 6) return;
 
@@ -59,10 +48,9 @@ class _NOKConnectScreenState extends State<NOKConnectScreen> {
     _speak(value);
   }
 
-
-  void _validatePin() {
+  void _validatePin() async {
     if (enteredPin == password) {
-      _speak("보호자가 성공적으로 등록되었습니다");
+      await _speak("보호자가 성공적으로 등록되었습니다");
       Navigator.push(
         context,
         MaterialPageRoute(builder: (context) => UserHomeScreen()),
@@ -72,7 +60,7 @@ class _NOKConnectScreenState extends State<NOKConnectScreen> {
         enteredPin = "";
       });
 
-      _speak("찾을 수 없는 고유번호입니다.");
+      await _speak("찾을 수 없는 고유번호입니다.");
 
       showGeneralDialog(
         context: context,

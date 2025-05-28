@@ -127,10 +127,11 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                   width: screenWidth * 0.8,
                   height: 50,
                   child: OutlinedButton(
-                    onPressed: () {
+                    onPressed: () async {
+                      await flutterTts.stop(); // TTS 중지
                       Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => const NOKConnectScreen()),
+                        context,
+                        MaterialPageRoute(builder: (context) => const NOKConnectScreen()),
                       );
                       Provider.of<UserSettingsProvider>(context, listen: false).vibrate();
                       },
@@ -161,7 +162,8 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                   width: screenWidth * 0.8,
                   height: 50,
                   child: OutlinedButton(
-                    onPressed: () {
+                    onPressed: () async {
+                      await flutterTts.stop(); // TTS 중지
                       Navigator.push(context, MaterialPageRoute(builder: (context) => const UserHomeScreen()),
                       );
                       Provider.of<UserSettingsProvider>(context, listen: false).vibrate();

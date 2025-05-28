@@ -31,8 +31,8 @@ class _UserSettingScreenState extends State<UserSettingScreen> {
 
   @override
   void dispose() {
+    _flutterTts.stop();
     super.dispose();
-    _flutterTts.stop(); // 앱 종료 시 TTS 멈추기
   }
 
   // TTS로 텍스트 읽기

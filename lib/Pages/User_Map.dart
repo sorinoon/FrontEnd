@@ -1,3 +1,4 @@
+// 250528 19:26
 import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
@@ -209,8 +210,9 @@ class _UserMapPageState extends State<UserMapPage> {
     super.dispose();
   }
 
-  void updateInputField(String field, String value) async {
-    if (value.contains("현위치")) {
+  // 현위치를 출발지로 설정하는 과정에서 오류 !!!!!!!!!!!!
+  /*void updateInputField(String field, String value) async {
+    if (field.contains("현위치")||field.contains("현 위치")) {
       try {
         final current = await Geolocator.getCurrentPosition(
           desiredAccuracy: LocationAccuracy.high,
@@ -227,6 +229,15 @@ class _UserMapPageState extends State<UserMapPage> {
       } catch (e) {
         await _speak("현재 위치를 가져오는 데 실패했습니다");
       }
+    }
+  }*/
+  void updateInputField(String field, String value) async {
+    if (field.contains("출발")) {
+      _startController.text = value;
+      await _speak("$value 를 출발지로 설정했습니다");
+    } else if (field.contains("도착")) {
+      _endController.text = value;
+      await _speak("$value 를 도착지로 설정했습니다");
     }
   }
 
