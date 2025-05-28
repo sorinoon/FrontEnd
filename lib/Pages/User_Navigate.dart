@@ -26,6 +26,16 @@ class PageNavigate extends StatefulWidget {
   State<PageNavigate> createState() => _PageNavigateState();
 }
 
+final FlutterTts flutterTts = FlutterTts();
+
+Future<void> speakTexts(List<String> texts) async {
+  for (var text in texts) {
+    await flutterTts.speak(text);
+    // 완료 대기
+    await flutterTts.awaitSpeakCompletion(true);
+  }
+}
+
 class _PageNavigateState extends State<PageNavigate> with WidgetsBindingObserver {
   CameraController? _cameraController;
   List<CameraDescription>? _cameras;
@@ -247,24 +257,65 @@ class _PageNavigateState extends State<PageNavigate> with WidgetsBindingObserver
           : Stack(
         children: [
           Positioned.fill(child: CameraPreview(_cameraController!)),
+
           GlobalGoBackButtonWhite(
-              onTap: () => Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const UserMapPage()))),
+              onTap: () {
+                speakTexts([
+                  "길찾기로 돌아가기",
+                  "화면을 터치하여 경로 안내 페이지로 이동합니다",
+                  "15초간 화면 터치를 안할 시 이어서 안내합니다.",
+                ]);
+
+                showGeneralDialog(
+                  context: context,
+                  barrierDismissible: true,
+                  barrierColor: Colors.black.withOpacity(0.3),
+                  barrierLabel: MaterialLocalizations.of(context).modalBarrierDismissLabel,
+                  transitionDuration: const Duration(milliseconds: 200),
+                  pageBuilder: (context, animation1, animation2) {
+                    return ReturnPopup(
+                        onTap: () {
+                          Navigator.pushReplacement(
+                            context,
+                            MaterialPageRoute(builder: (_) => const UserMapPage()),
+                          );
+                        }
+                    );
+                  },
+                );
+              }
+          ),
+
+
           Positioned(
-              top: 60,
-              left: 0,
-              right: 0,
-              child: Center(
-                  child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                      decoration: BoxDecoration(color: Colors.green, borderRadius: BorderRadius.circular(20)),
-                      child: const Text('안내 모드', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold))))),
+            top: 60,
+            left: 0,
+            right: 0,
+            child: Center(
+              child: Container(
+                padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                decoration: BoxDecoration(
+                  color: Colors.green,
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Text(
+                  '안내 모드',
+                  style: TextStyle(fontSize: 20, color: Colors.black, fontWeight: FontWeight.bold),
+                ),
+              ),
+            ),
+          ),
           Positioned(
-              top: 120,
-              left: 0,
-              right: 0,
-              child: Center(
-                  child: Text(_yoloResultText,
-                      style: const TextStyle(fontSize: 18, color: Colors.white, backgroundColor: Colors.black54)))),
+            top: 120,
+            left: 0,
+            right: 0,
+            child: Center(
+              child: Text(
+                _yoloResultText,
+                style: TextStyle(fontSize: 18, color: Colors.white, backgroundColor: Colors.black54),
+              ),
+            ),
+          ),
           SafeArea(
             child: Align(
               alignment: Alignment.bottomCenter,
@@ -275,14 +326,16 @@ class _PageNavigateState extends State<PageNavigate> with WidgetsBindingObserver
                   child: Container(
                     width: 80,
                     height: 80,
-                    decoration: const BoxDecoration(shape: BoxShape.circle, color: Colors.white),
-                    child: const Icon(Icons.call, color: Color(0xff24bd24), size: 45),
+                    decoration: BoxDecoration(shape: BoxShape.circle, color: Colors.white),
+                    child: Icon(Icons.call, color: Color(0xff24bd24), size: 45),
                   ),
                 ),
               ),
             ),
           ),
-          GlobalMicButton(onPressed: () => print("마이크 클릭됨")),
+          GlobalMicButton(onPressed: () {
+            print("마이크 클릭됨");
+          }),
         ],
       ),
     );
@@ -322,13 +375,13 @@ class _PageNavigateState extends State<PageNavigate> with WidgetsBindingObserver
 // }
 //
 // final FlutterTts flutterTts = FlutterTts();
+//Future<void> speakTexts(List<String> texts) async {
+// //   for (var text in texts) {
+// //     await flutterTts.speak(text);
+// //     // 완료 대기
+// //     await flutterTts.awaitSpeakCompletion(true);
+// //   }
 //
-// Future<void> speakTexts(List<String> texts) async {
-//   for (var text in texts) {
-//     await flutterTts.speak(text);
-//     // 완료 대기
-//     await flutterTts.awaitSpeakCompletion(true);
-//   }
 // }
 //
 // class _PageNavigateState extends State<PageNavigate> with WidgetsBindingObserver {

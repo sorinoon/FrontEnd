@@ -180,7 +180,7 @@ class _UserMapPageState extends State<UserMapPage> {
         _checkDeviation(position);
       });
     } catch (e) {
-      print('❌ 네이티브 호출 오류: $e');
+      print('네이티브 호출 오류: $e');
     }
   }
 
