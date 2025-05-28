@@ -89,43 +89,47 @@ class _SettingMicButtonState extends State<SettingMicButton> {
 
   @override
   Widget build(BuildContext context) {
-    return Positioned(
-      bottom: 40,
-      left: 24,
-      child: GestureDetector(
-        onTap: () async {
-          widget.onPressed();
-          Provider.of<UserSettingsProvider>(context, listen: false).vibrate();
-          _lastCommand = '';
-          _showVoiceOut = false;
-          await _speak("부르셨나요?");
-          await _startListening();
-        },
-        child: Stack(
-          clipBehavior: Clip.none,
-          children: [
-            if (_showVoice)
-              Positioned(
-                bottom: -70,
-                left: -22,
-                child: Lottie.asset('assets/lottie/Voice.json', width: 200),
-              ),
-            if (_showVoiceOut)
-              Positioned(
-                bottom: -70,
-                left: -22,
-                child: Lottie.asset('assets/lottie/VoiceOut.json', width: 200),
-              ),
-            SizedBox(
-              width: 110,
-              height: 110,
-              child: Image.asset('assets/images/micBtn.png'),
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 50),
+      child: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          if (_showVoice)
+            Positioned(
+              bottom: -70,
+              left: -22,
+              child: Lottie.asset('assets/lottie/Voice.json', width: 200),
             ),
-          ],
-        ),
+          if (_showVoiceOut)
+            Positioned(
+              bottom: -70,
+              left: -22,
+              child: Lottie.asset('assets/lottie/VoiceOut.json', width: 200),
+            ),
+          Positioned(
+            bottom: -26,
+            left: 24,
+            child: GestureDetector(
+              onTap: () async {
+                widget.onPressed();
+                Provider.of<UserSettingsProvider>(context, listen: false).vibrate();
+                _lastCommand = '';
+                _showVoiceOut = false;
+                await _speak("부르셨나요?");
+                await _startListening();
+              },
+              child: SizedBox(
+                width: 110,
+                height: 110,
+                child: Image.asset('assets/images/micBtn.png', fit: BoxFit.contain),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
+
 
   @override
   void dispose() {

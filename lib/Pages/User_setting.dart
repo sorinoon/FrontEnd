@@ -61,7 +61,7 @@ class _UserSettingScreenState extends State<UserSettingScreen> {
 
           // 제목
           Positioned(
-            top: 40,
+            top: 45.5,
             left: 0,
             right: 0,
             child: Center(

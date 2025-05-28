@@ -71,6 +71,9 @@ class _AnalyzeMicButtonState extends State<AnalyzeMicButton> {
     if (command.contains('전송') && widget.onSend != null && state != null) {
       await _speak("분석을 시작할게요");
       await widget.onSend!();
+    } else if (command.contains('명령어') ||
+        command.contains("음성 명령어")) {
+      await _speak("지금 사용할 수 있는 명령어는 전송. 입니다.");
     } else if (command.contains('설명') ||
         command.contains("소리 눈") ||
         command.contains("소리눈") ||
@@ -78,7 +81,7 @@ class _AnalyzeMicButtonState extends State<AnalyzeMicButton> {
         command.contains("우리눈") ||
         command.contains("우리 눈")) {
       await _speak(
-          "지금은 문서나 라벨을 인식하는 페이지입니다. 화면에 보이는 문자를 전송. 이라고 말하면 화면을 캡처해서 요약해드려요.");
+          "지금은 문서나 라벨을 인식하는 페이지입니다. 전송. 이라고 말하면 화면에 보이는 문서 또는 라벨의 문자를 캡처하여 요약해드려요.");
     } else if (command.contains('홈') || command.contains('메인')) {
       await _speak("메인 화면으로 이동할게요");
       if (context.mounted) {

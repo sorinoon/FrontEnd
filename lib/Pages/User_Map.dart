@@ -142,6 +142,8 @@ class _UserMapPageState extends State<UserMapPage> {
 
   @override
   Widget build(BuildContext context) {
+    final isKeyboardVisible = MediaQuery.of(context).viewInsets.bottom > 0;
+
     return Scaffold(
       resizeToAvoidBottomInset: true,
       body: Stack(
@@ -162,10 +164,11 @@ class _UserMapPageState extends State<UserMapPage> {
                     ),
                     child: IntrinsicHeight(
                       child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                        padding: const EdgeInsets.symmetric(horizontal: 17.0),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
+                            const SizedBox(height: 6),
                             const Center(
                               child: Text(
                                 'Tmap 경로 안내',
@@ -176,7 +179,7 @@ class _UserMapPageState extends State<UserMapPage> {
                                 ),
                               ),
                             ),
-                            const SizedBox(height: 20),
+                            const SizedBox(height: 10),
                             Container(
                               height: 450,
                               child: AndroidView(
@@ -184,7 +187,7 @@ class _UserMapPageState extends State<UserMapPage> {
                                 layoutDirection: TextDirection.ltr,
                                 creationParams: {},
                                 creationParamsCodec:
-                                    const StandardMessageCodec(),
+                                const StandardMessageCodec(),
                               ),
                             ),
                             TextField(
@@ -233,7 +236,7 @@ class _UserMapPageState extends State<UserMapPage> {
                                     MaterialPageRoute(
                                       builder:
                                           (_) =>
-                                              PageNavigate(route: _routePoints),
+                                          PageNavigate(route: _routePoints),
                                     ),
                                   );
                                 }
@@ -253,7 +256,7 @@ class _UserMapPageState extends State<UserMapPage> {
                                 ),
                               ),
                               child: Text(
-                                _routeTimeText == null ? '경로 요청' : '안내 시작',
+                                _routeTimeText == null ? '경로 탐색' : '안내 시작',
                                 style: const TextStyle(
                                   fontSize: 20,
                                   color: Colors.black,
@@ -286,17 +289,19 @@ class _UserMapPageState extends State<UserMapPage> {
             ),
           ),
           GlobalGoBackButton(targetPage: UserHomeScreen()),
-          TmapMicButton(
+          if (!isKeyboardVisible) TmapMicButton(
             onPressed: () {},
             customCommandHandler: (command, tts, context) async {
               final state =
-                  context.findAncestorStateOfType<_UserMapPageState>();
+              context.findAncestorStateOfType<_UserMapPageState>();
 
               if (command.contains("출발지")) {
                 final place = command.replaceAll("출발지", "").trim();
                 state?.updateInputField("출발", place);
                 return true;
-              } else if (command.contains("도착지")) {
+              }else if (command.contains("최준희와 아이들") || command.contains("최준희")) {
+                await tts.speak("그거 아시나요? 최준희와 아이들 팀의 최준희는 팀장을 하기 싫어했습니다. 하지만 즐기고 있다는 것이 정설입니다");
+              }else if (command.contains("도착지")) {
                 final place = command.replaceAll("도착지", "").trim();
                 state?.updateInputField("도착", place);
                 return true;
@@ -306,19 +311,45 @@ class _UserMapPageState extends State<UserMapPage> {
                   state._searchRoute();
                   return true;
                 }
-              } else if (command.contains("안내 시작") || command.contains("시작")) {
-                if (state != null) {
-                  await tts.speak("소리눈 네비게이션이 안내를 시작합니다");
-                  if (context.mounted) {
-                    Navigator.pushReplacement(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => PageNavigate(route: state._routePoints),
-                      ),
-                    );
-                  }
-                  return true;
+              } else if (command.contains("소리 눈") || command.contains("소리눈") ||
+                  command.contains("우리는") || command.contains("우리눈") || command.contains("우리 눈") || command.contains("소리는")) {
+                await tts.speak(
+                    "지금은 출발지와 목적지 설정 페이지입니다. "
+                        "출발지 한성대입구역. 이라고 말하여 출발지를 설정하고, "
+                        "도착지 길흥역. 이라고 말하여 도착지를 설정합니다. "
+                        "경로 탐색. 이라고 말하여 경로 탐색을 시작합니다."
+                        "안내 시작. 이라고 말하여 탐색한 경로를 토대로 도보 안내를 시작합니다."
+                );
+                return true;
+              } else if (command.contains("홈") || command.contains("메인")) {
+                await tts.speak("메인 홈으로 이동할게요");
+                if (context.mounted) {
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(builder: (_) => UserHomeScreen()),
+                  );
                 }
+                return true;
+              } else if (command.contains("뒤로") || command.contains("이전")) {
+                await tts.speak("이전 페이지로 이동할게요");
+                if (context.mounted) Navigator.pop(context);
+                return true;
+              } else if (command.contains("음성 명령어") || command.contains("명령어")) {
+                await tts.speak("지금 사용할 수 있는 명령어는 출발지 한성대입구역. 도착지 한성대. 경로 탐색. 안내 시작. 홈 또는 메인. 이전. 이 있습니다");
+              }
+              else if (command.contains("안내 시작") || command.contains("시작"))
+              { if (state != null) {
+                await tts.speak("소리눈 네비게이션이 안내를 시작합니다");
+                if (context.mounted) {
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => PageNavigate(route: state._routePoints),
+                    ),
+                  );
+                }
+                return true;
+              }
               }
               return false;
             },

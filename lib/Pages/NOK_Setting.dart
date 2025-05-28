@@ -104,7 +104,7 @@ class _NOKSettingScreen extends State<NOKSettingScreen> {
           ),
           GlobalGoBackButton(),
           Positioned(
-            top: 50,
+            top: 45,
             left: 0,
             right: 0,
             child: Center(

@@ -109,7 +109,7 @@ class _CAMQRState extends State<CAMQRScreen> {
             },
           ),
 
-          // 카메라 버튼
+          /*// 카메라 버튼
           Positioned(
             bottom: 30,
             left: 0,
@@ -129,7 +129,7 @@ class _CAMQRState extends State<CAMQRScreen> {
                 ),
               ),
             ),
-          ),
+          ),*/
         ],
       ),
     );

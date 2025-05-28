@@ -94,23 +94,32 @@ class _PageNavigateState extends State<PageNavigate> with WidgetsBindingObserver
     _flutterTts.setSpeechRate(0.5);
 
     _channel = WebSocketChannel.connect(
-      Uri.parse('ws://223.194.138.73:8000/ws/detect/'),
+      Uri.parse('ws://223.194.157.122:8000/ws/detect/'),
     );
 
+    // _channel!.stream.listen((message) async {
+    //   final data = jsonDecode(message);
+    //   final warning = data['warning'];
+    //
+    //   if (warning != null && warning.isNotEmpty && !_isSpeaking) {
+    //     _isSpeaking = true;
+    //     await _flutterTts.speak(warning);
+    //     _flutterTts.setCompletionHandler(() {
+    //       _isSpeaking = false;
+    //     });
+    //   }
+    // });
     _channel!.stream.listen((message) async {
       final data = jsonDecode(message);
       final warning = data['warning'];
 
-      if (warning != null && warning.isNotEmpty && !_isSpeaking) {
-        _isSpeaking = true;
+      if (warning != null && warning.isNotEmpty) {
         await _flutterTts.speak(warning);
-        _flutterTts.setCompletionHandler(() {
-          _isSpeaking = false;
-        });
       }
     });
 
-    _sendTimer = Timer.periodic(Duration(milliseconds: 300), (_) async {
+
+    _sendTimer = Timer.periodic(Duration(milliseconds: 100), (_) async {
       if (latestFrame == null) return;
       final image = latestFrame!;
       latestFrame = null;
@@ -198,7 +207,7 @@ class _PageNavigateState extends State<PageNavigate> with WidgetsBindingObserver
   }
 
   void _callProtector() async {
-    final phoneUri = Uri(scheme: 'tel', path: '010-1234-5678');
+    final phoneUri = Uri(scheme: 'tel', path: '010-2098-6404');
     if (await canLaunchUrl(phoneUri)) {
       await launchUrl(phoneUri);
     } else {

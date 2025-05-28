@@ -35,7 +35,7 @@ class _UserListScreenState extends State<UserListScreen> {
 
           // 제목
           Positioned(
-            top: 50,
+            top: 45,
             left: 0,
             right: 0,
             child: Center(
