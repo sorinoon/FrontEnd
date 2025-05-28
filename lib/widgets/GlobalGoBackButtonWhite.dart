@@ -7,8 +7,13 @@ import '../Pages/LoginModeProvider.dart';
 
 class GlobalGoBackButtonWhite extends StatelessWidget {
   final Widget? targetPage;
+  final VoidCallback? onTap;
 
-  const GlobalGoBackButtonWhite({super.key, this.targetPage});
+  const GlobalGoBackButtonWhite({
+    super.key,
+    this.targetPage,
+    this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -17,6 +22,11 @@ class GlobalGoBackButtonWhite extends StatelessWidget {
       left: 40,
       child: GestureDetector(
         onTap: () async {
+          if (onTap != null) {
+            onTap!();
+            return;
+          }
+
           final isProtectorMode = Provider.of<LoginModeProvider>(context, listen: false).isProtectorMode;
 
           if (isProtectorMode) {

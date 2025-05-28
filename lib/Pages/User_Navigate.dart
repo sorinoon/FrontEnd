@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:collection';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -12,11 +13,13 @@ import 'package:screen_brightness/screen_brightness.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:latlong2/latlong.dart';
-
+import '../Pages/User_Map.dart';
+import '../widgets/Popup.dart';
 import '../Pages/User_SettingsProvider.dart';
 import '../widgets/GlobalGoBackButtonWhite.dart';
 import '../widgets/GlobalMicButton.dart';
 import 'package:http/http.dart' as http;
+import 'package:flutter_tts/flutter_tts.dart';
 
 class PageNavigate extends StatefulWidget {
   final List<LatLng> route;
@@ -25,6 +28,16 @@ class PageNavigate extends StatefulWidget {
 
   @override
   State<PageNavigate> createState() => _PageNavigateState();
+}
+
+final FlutterTts flutterTts = FlutterTts();
+
+Future<void> speakTexts(List<String> texts) async {
+  for (var text in texts) {
+    await flutterTts.speak(text);
+    // 완료 대기
+    await flutterTts.awaitSpeakCompletion(true);
+  }
 }
 
 class _PageNavigateState extends State<PageNavigate> with WidgetsBindingObserver {
@@ -292,7 +305,36 @@ class _PageNavigateState extends State<PageNavigate> with WidgetsBindingObserver
           : Stack(
         children: [
           Positioned.fill(child: CameraPreview(_cameraController!)),
-          GlobalGoBackButtonWhite(),
+
+          GlobalGoBackButtonWhite(
+            onTap: () {
+              speakTexts([
+                "길찾기로 돌아가기",
+                "화면을 터치하여 경로 안내 페이지로 이동합니다",
+                "15초간 화면 터치를 안할 시 이어서 안내합니다.",
+              ]);
+
+              showGeneralDialog(
+                context: context,
+                barrierDismissible: true,
+                barrierColor: Colors.black.withOpacity(0.3),
+                barrierLabel: MaterialLocalizations.of(context).modalBarrierDismissLabel,
+                transitionDuration: const Duration(milliseconds: 200),
+                pageBuilder: (context, animation1, animation2) {
+                  return ReturnPopup(
+                      onTap: () {
+                        Navigator.pushReplacement(
+                          context,
+                          MaterialPageRoute(builder: (_) => const UserMapPage()),
+                        );
+                      }
+                  );
+                },
+              );
+            }
+          ),
+
+
           Positioned(
             top: 60,
             left: 0,
