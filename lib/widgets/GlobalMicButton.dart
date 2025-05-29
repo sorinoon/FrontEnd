@@ -136,23 +136,23 @@ class _GlobalMicButtonState extends State<GlobalMicButton> {
         command.contains('종료')) {
       await _speak("언제든 다시 불러주세요");
     } else if (command.contains('전송')) {
-      final isInAnalyzeScreen =
-          context.widget.runtimeType == CameraAnalyzeScreen;
-
-      if (isInAnalyzeScreen) {
-        final state = context.findAncestorStateOfType<CameraAnalyzeState>();
-        if (state != null) {
-          state.captureAndSendScreen();
-        } else {
-          final unknowns = [
-            "죄송해요. 다시 말씀해 주시겠어요?",
-            "잘 못 들었어요. 한 번 더 말씀해 주세요.",
-            "말씀을 놓쳤어요. 다시 한 번 부탁드릴게요.",
-          ];
-          await _speak(unknowns[Random().nextInt(unknowns.length)]);
-          _shouldContinueListening = true;
-        }
-      }
+      // final isInAnalyzeScreen =
+      //     context.widget.runtimeType == CameraAnalyzeScreen;
+      //
+      // if (isInAnalyzeScreen) {
+      //   final state = context.findAncestorStateOfType<CameraAnalyzeState>();
+      //   if (state != null) {
+      //     state.captureAndSendScreen();
+      //   } else {
+      //     final unknowns = [
+      //       "죄송해요. 다시 말씀해 주시겠어요?",
+      //       "잘 못 들었어요. 한 번 더 말씀해 주세요.",
+      //       "말씀을 놓쳤어요. 다시 한 번 부탁드릴게요.",
+      //     ];
+      //     await _speak(unknowns[Random().nextInt(unknowns.length)]);
+      //     _shouldContinueListening = true;
+      //   }
+      // }
     }
 
     _isProcessing = false;

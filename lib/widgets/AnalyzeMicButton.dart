@@ -11,7 +11,7 @@ import '../Pages/User_SettingsProvider.dart';
 
 class AnalyzeMicButton extends StatefulWidget {
   final VoidCallback onPressed;
-  final Future<void> Function()? onSend;
+  final Future<void> Function(int mode)? onSend;
 
   const AnalyzeMicButton({super.key, required this.onPressed, this.onSend});
 
@@ -67,10 +67,17 @@ class _AnalyzeMicButtonState extends State<AnalyzeMicButton> {
 
   Future<void> _processCommand(String command) async {
     final state = context.findAncestorStateOfType<CameraAnalyzeState>();
-
-    if (command.contains('전송') && widget.onSend != null && state != null) {
-      await _speak("분석을 시작할게요");
-      await widget.onSend!();
+    if (state != null) {
+      if (command.contains('요약')) {
+        await _speak("요약을 시작할게요");
+        state.captureAndSendScreen(0); //요약 모드
+      } else if (command.contains('전송')) {
+        await _speak("분석을 시작할게요");
+        state.captureAndSendScreen(1); //정리 모드
+      }
+      // if (command.contains('전송') && widget.onSend != null && state != null) {
+      //   await _speak("분석을 시작할게요");
+      //   await widget.onSend!();
     } else if (command.contains('명령어') ||
         command.contains("음성 명령어")) {
       await _speak("지금 사용할 수 있는 명령어는 전송. 입니다.");

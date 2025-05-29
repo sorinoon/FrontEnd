@@ -28,8 +28,48 @@ class CameraAnalyzeState extends State<CameraAnalyzeScreen> {
     flutterTts.setSpeechRate(0.5);
   }
 
-  // ✅ 화면 캡처 후 백엔드로 전송하고, summary를 TTS로 읽음
-  Future<void> captureAndSendScreen() async {
+  // 화면 캡처 후 백엔드로 전송하고, summary를 TTS로 읽음
+  // Future<void> captureAndSendScreen() async {
+  //   try {
+  //     final capturedImage = await screenshotController.capture();
+  //     if (capturedImage == null) {
+  //       debugPrint('화면 캡처 실패');
+  //       return;
+  //     }
+  //
+  //     final uri = Uri.parse('http://192.168.45.250:8000/ocr-summary/');
+  //     final request = http.MultipartRequest('POST', uri);
+  //
+  //     request.files.add(http.MultipartFile.fromBytes(
+  //       'image',
+  //       capturedImage,
+  //       filename: 'screenshot.jpg',
+  //       contentType: MediaType('image', 'jpeg'),
+  //     ));
+  //
+  //     final response = await request.send();
+  //     final responseBody = await response.stream.bytesToString();
+  //
+  //     if (response.statusCode == 200) {
+  //       debugPrint('서버 전송 성공');
+  //       print('sever connected');
+  //
+  //       final decoded = jsonDecode(responseBody);
+  //       final summary = decoded['summary'];
+  //
+  //       if (summary != null && summary is String) {
+  //         await flutterTts.speak(summary); // TTS로 음성 출력
+  //       }
+  //     } else {
+  //       debugPrint('서버 오류: ${response.statusCode}');
+  //       print('server error');
+  //     }
+  //   } catch (e) {
+  //     debugPrint('전송 중 예외 발생: $e');
+  //   }
+  // }
+
+  Future<void> captureAndSendScreen(int mode) async {
     try {
       final capturedImage = await screenshotController.capture();
       if (capturedImage == null) {
@@ -37,8 +77,10 @@ class CameraAnalyzeState extends State<CameraAnalyzeScreen> {
         return;
       }
 
-      final uri = Uri.parse('http://223.194.159.243:8000/ocr-summary/');
+      final uri = Uri.parse('http://192.168.45.250:8000/ocr-summary/');
       final request = http.MultipartRequest('POST', uri);
+
+      request.fields['mode'] = mode.toString(); // 모드 추가 (0 또는 1)
 
       request.files.add(http.MultipartFile.fromBytes(
         'image',
@@ -52,20 +94,24 @@ class CameraAnalyzeState extends State<CameraAnalyzeScreen> {
 
       if (response.statusCode == 200) {
         debugPrint('서버 전송 성공');
+        print('server connected');
 
         final decoded = jsonDecode(responseBody);
         final summary = decoded['summary'];
 
         if (summary != null && summary is String) {
-          await flutterTts.speak(summary); // ✅ TTS로 음성 출력
+          await flutterTts.speak(summary); //TTS로 음성 출력
         }
       } else {
         debugPrint('서버 오류: ${response.statusCode}');
+        print('server error');
       }
     } catch (e) {
       debugPrint('전송 중 예외 발생: $e');
+      print('exception: $e');
     }
   }
+
 
   @override
   Widget build(BuildContext context) {
