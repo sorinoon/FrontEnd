@@ -50,6 +50,18 @@ class MainActivity : FlutterActivity() {
                     }
                 }
 
+                "addFixedUserMarker" -> {
+                    val lat = call.argument<Double>("latitude")
+                    val lon = call.argument<Double>("longitude")
+                    val id = call.argument<String>("id")
+                    if (lat != null && lon != null && id != null) {
+                        tMapViewInstance.addFixedUserMarker(lat, lon, id)
+                        result.success("사용자 마커 추가 완료")
+                    } else {
+                        result.error("INVALID_ARGUMENTS", "latitude, longitude, id 필요", null)
+                    }
+                }
+
                 "reloadMap" -> {
                     Handler(Looper.getMainLooper()).post {
                         // 기존 tMapViewInstance 제거 및 새 인스턴스 생성

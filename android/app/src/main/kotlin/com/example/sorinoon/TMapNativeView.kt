@@ -90,6 +90,41 @@ class TMapNativeView(
         }, 1800)
     }
 
+    fun addFixedUserMarker(lat: Double, lon: Double, id: String) {
+        if (!isMapReady) {
+            Log.w("TMapNativeView", "지도 준비 전. 사용자 마커 반영 보류")
+            return
+        }
+
+        val userPoint = TMapPoint(lat, lon)
+
+        val userMarker = TMapMarkerItem().apply {
+            this.id = id
+            this.tMapPoint = userPoint
+            this.name = "사용자 위치 ($id)"
+            this.icon = createBlinkingCircle(context)
+        }
+
+        tMapView.removeTMapMarkerItem(id)
+        tMapView.addTMapMarkerItem(userMarker)
+
+        Handler(Looper.getMainLooper()).postDelayed({
+            tMapView.setZoomLevel(15)
+            tMapView.setLocationPoint(lon, lat)
+            tMapView.setCenterPoint(lat, lon) // ← 순서 확인 필요
+            tMapView.invalidate()
+            Log.d("TMapNativeView", " 강제 좌표 스왑 중심 이동: $lat, $lon")
+        }, 800)
+
+        Handler(Looper.getMainLooper()).postDelayed({
+            tMapView.setCenterPoint(lat, lon)
+            tMapView.invalidate()
+            Log.d("TMapNativeView", " 2차 중심 이동 보정 (좌표 스왑): $lat, $lon")
+        }, 1800)
+
+        Log.d("TMapNativeView", "📍 사용자 마커 추가됨: $lat, $lon [$id]")
+    }
+
     fun createBlinkingCircle(context: Context): Bitmap {
         val size = 100
         val view = View(context).apply {

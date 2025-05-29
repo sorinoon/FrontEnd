@@ -3,6 +3,8 @@ import 'package:provider/provider.dart';
 import '../widgets/GlobalGoBackButton.dart';
 import '../Pages/NOK_SettingsProvider.dart';
 import '../Pages/NOK_UserLocation.dart'; // CustomMapScreen 정의된 파일
+import 'package:latlong2/latlong.dart';
+import 'package:geolocator/geolocator.dart';
 
 class UserListScreen extends StatefulWidget {
   const UserListScreen({super.key});
@@ -26,6 +28,13 @@ class _UserListScreenState extends State<UserListScreen> {
     Colors.orange,
     Colors.red,
     Colors.grey,
+  ];
+
+  final List<LatLng> userLocations = [
+    LatLng(37.582942, 127.010356), // 이영주
+    LatLng(37.602680, 127.021767), // 김규리
+    LatLng(37.489, 127.010), // 전준혁 (예시)
+    LatLng(37.561, 126.998), // 백강두 (예시)
   ];
 
   @override
@@ -271,6 +280,7 @@ class _UserListScreenState extends State<UserListScreen> {
                                           userName: userNames[index],
                                           mapImage: mapPath,
                                           nearestStation: nearestStation,
+                                          location: userLocations[index],
                                         ),
                                       ),
                                     );
