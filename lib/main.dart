@@ -9,6 +9,8 @@ import 'Pages/User_Navigate.dart';
 import 'Pages/Splash.dart';
 import 'Pages/ProtectorListProvider.dart';
 
+final RouteObserver<PageRoute> routeObserver = RouteObserver<PageRoute>();
+
 void main() {
   WidgetsFlutterBinding.ensureInitialized(); // Flutter 엔진 초기화
   KakaoSdk.init(
@@ -31,6 +33,7 @@ void main() {
 }
 
 class MyApp extends StatelessWidget {
+
   const MyApp({super.key});
 
   @override
@@ -39,6 +42,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         fontFamily: 'KoddiUDOnGothic', // 전역 폰트 설정
       ),
+      navigatorObservers: [routeObserver],
       home: SplashScreen(),
     );
   }

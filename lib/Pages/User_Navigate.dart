@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:collection';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -13,19 +12,16 @@ import 'package:screen_brightness/screen_brightness.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:latlong2/latlong.dart';
+import 'package:http/http.dart' as http;
 import '../Pages/User_Map.dart';
-import '../widgets/Popup.dart';
 import '../Pages/User_SettingsProvider.dart';
 import '../widgets/GlobalGoBackButtonWhite.dart';
 import '../widgets/GlobalMicButton.dart';
-import 'package:http/http.dart' as http;
-import 'package:flutter_tts/flutter_tts.dart';
+import '../widgets/Popup.dart';
 
 class PageNavigate extends StatefulWidget {
   final List<LatLng> route;
-
   const PageNavigate({Key? key, required this.route}) : super(key: key);
-
   @override
   State<PageNavigate> createState() => _PageNavigateState();
 }
@@ -51,12 +47,11 @@ class _PageNavigateState extends State<PageNavigate> with WidgetsBindingObserver
 
   String _yoloResultText = '감지 대기 중...';
   final FlutterTts _flutterTts = FlutterTts();
-  bool _isSpeaking = false;
+  bool _isTtsBusy = false;
 
   StreamSubscription<Position>? _positionStream;
   final Distance _distance = Distance();
   int _lastGuidedIndex = -1;
-
   bool _hasDeviated = false;
 
   @override
@@ -68,6 +63,7 @@ class _PageNavigateState extends State<PageNavigate> with WidgetsBindingObserver
 
   Future<void> _initAll() async {
     await _setBrightness();
+    await _flutterTts.awaitSpeakCompletion(true);
     await _initializeCamera();
     await _initializeWebSocket();
     await _initializeLocationTracking();
@@ -75,10 +71,8 @@ class _PageNavigateState extends State<PageNavigate> with WidgetsBindingObserver
 
   Future<void> _setBrightness() async {
     final settings = Provider.of<UserSettingsProvider>(context, listen: false);
-    final brightness = ScreenBrightness();
-
     if (settings.isLowPowerModeEnabled) {
-      await brightness.setApplicationScreenBrightness(0.0);
+      await ScreenBrightness().setApplicationScreenBrightness(0.0);
     }
   }
 
@@ -91,18 +85,24 @@ class _PageNavigateState extends State<PageNavigate> with WidgetsBindingObserver
     if (!status.isGranted) return;
 
     _cameras = await availableCameras();
-    if (_cameras!.isNotEmpty) {
-      _cameraController = CameraController(_cameras![0], ResolutionPreset.low);
-      await _cameraController!.initialize();
+    _cameraController = CameraController(_cameras![0], ResolutionPreset.low);
+    await _cameraController!.initialize();
 
-      setState(() {
-        _isCameraInitialized = true;
-      });
+    setState(() {
+      _isCameraInitialized = true;
+    });
 
-      _cameraController!.startImageStream((CameraImage image) {
-        latestFrame = image;
-      });
-    }
+    _cameraController!.startImageStream((CameraImage image) {
+      latestFrame = image;
+    });
+  }
+
+  Future<void> speakSafely(String text) async {
+    if (_isTtsBusy) return;
+    _isTtsBusy = true;
+    await _flutterTts.speak(text);
+    await _flutterTts.awaitSpeakCompletion(true);
+    _isTtsBusy = false;
   }
 
   Future<void> _initializeWebSocket() async {
@@ -110,19 +110,14 @@ class _PageNavigateState extends State<PageNavigate> with WidgetsBindingObserver
     _flutterTts.setSpeechRate(0.5);
 
     _channel = WebSocketChannel.connect(
-      Uri.parse('ws://223.194.138.73:8000/ws/detect/'),
+      Uri.parse('ws://192.168.45.250:8000/ws/detect/'),
     );
 
     _channel!.stream.listen((message) async {
       final data = jsonDecode(message);
       final warning = data['warning'];
-
-      if (warning != null && warning.isNotEmpty && !_isSpeaking) {
-        _isSpeaking = true;
-        await _flutterTts.speak(warning);
-        _flutterTts.setCompletionHandler(() {
-          _isSpeaking = false;
-        });
+      if (warning != null && warning.isNotEmpty) {
+        await speakSafely(warning);
       }
     });
 
@@ -132,25 +127,16 @@ class _PageNavigateState extends State<PageNavigate> with WidgetsBindingObserver
       latestFrame = null;
 
       try {
-        final width = image.width;
-        final height = image.height;
+        final grayscale = img.Image(width: image.width, height: image.height);
         final bytes = image.planes[0].bytes;
-
-        final grayscale = img.Image(width: width, height: height);
-        for (int y = 0; y < height; y++) {
-          for (int x = 0; x < width; x++) {
-            final index = y * width + x;
-            final value = bytes[index];
+        for (int y = 0; y < image.height; y++) {
+          for (int x = 0; x < image.width; x++) {
+            final value = bytes[y * image.width + x];
             grayscale.setPixel(x, y, img.ColorRgb8(value, value, value));
           }
         }
-
-        final jpeg = img.encodeJpg(grayscale);
-        final base64Image = base64Encode(jpeg);
-
-        if (_channel != null && _channel!.closeCode == null) {
-          _channel!.sink.add(jsonEncode({'image': base64Image}));
-        }
+        final base64Image = base64Encode(img.encodeJpg(grayscale));
+        _channel?.sink.add(jsonEncode({'image': base64Image}));
       } catch (e) {
         print("프레임 전송 실패: $e");
       }
@@ -158,24 +144,54 @@ class _PageNavigateState extends State<PageNavigate> with WidgetsBindingObserver
   }
 
   Future<void> _initializeLocationTracking() async {
-    bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
-    if (!serviceEnabled) return;
-
-    LocationPermission permission = await Geolocator.checkPermission();
+    if (!await Geolocator.isLocationServiceEnabled()) return;
+    var permission = await Geolocator.checkPermission();
     if (permission == LocationPermission.denied) {
       permission = await Geolocator.requestPermission();
-      if (permission != LocationPermission.whileInUse && permission != LocationPermission.always) return;
+      if (permission == LocationPermission.deniedForever) return;
     }
 
-    _positionStream = Geolocator.getPositionStream().listen((Position position) {
+    _positionStream = Geolocator.getPositionStream().listen((position) {
       _checkGuidance(position);
     });
   }
 
-  Future<void> _recalculateRoute(Position userPosition) async {
-    // 도착지 다시 설정 (기존 목적지 유지한다고 가정)
-    final dest = widget.route.last; // 원래 목적지
+  Future<void> _checkGuidance(Position position) async {
+    for (int i = _lastGuidedIndex + 1; i < widget.route.length; i++) {
+      final userPos = LatLng(position.latitude, position.longitude);
+      bool isOnRoute = widget.route.any((p) => _distance(userPos, p) < 25.0);
 
+      if (!isOnRoute && !_hasDeviated) {
+        _hasDeviated = true;
+        await speakSafely("경로를 이탈했습니다. 재탐색이 필요합니다");
+        await _recalculateRoute(position);
+        return;
+      }
+
+      final distanceToPoint = _distance(userPos, widget.route[i]);
+      if (distanceToPoint < 15.0) {
+        _lastGuidedIndex = i;
+        if (i < widget.route.length - 1) {
+          final current = widget.route[i];
+          final next = widget.route[i + 1];
+          final bearing = _distance.bearing(current, next);
+          String direction = (bearing > 45 && bearing < 135)
+              ? "오른쪽으로 이동하세요"
+              : (bearing > -135 && bearing < -45)
+              ? "왼쪽으로 이동하세요"
+              : "직진하세요";
+          await speakSafely(direction);
+        } else {
+          await speakSafely("목적지에 도착했습니다");
+          _positionStream?.cancel();
+        }
+        break;
+      }
+    }
+  }
+
+  Future<void> _recalculateRoute(Position userPosition) async {
+    final dest = widget.route.last;
     final response = await http.post(
       Uri.parse('https://apis.openapi.sk.com/tmap/routes/pedestrian?version=1'),
       headers: {'Content-Type': 'application/json', 'appKey': 'huZN3mGcZh2sdd283mTHF8D4AVCBYOVB6v6umT6T'},
@@ -189,92 +205,28 @@ class _PageNavigateState extends State<PageNavigate> with WidgetsBindingObserver
       }),
     );
 
-    final data = jsonDecode(response.body);
-    final features = data['features'];
+    final features = jsonDecode(response.body)['features'];
     final newRoute = <LatLng>[];
-
     for (var f in features) {
-      final geometry = f['geometry'];
-      if (geometry['type'] == 'Point') {
-        final coords = geometry['coordinates'];
-        newRoute.add(LatLng(coords[1], coords[0]));
-      }
+      final coords = f['geometry']['coordinates'];
+      newRoute.add(LatLng(coords[1], coords[0]));
     }
 
     setState(() {
-      widget.route.clear();
-      widget.route.addAll(newRoute);
+      widget.route
+        ..clear()
+        ..addAll(newRoute);
       _lastGuidedIndex = -1;
       _hasDeviated = false;
     });
 
-    await _flutterTts.speak("새로운 경로로 안내를 시작합니다.");
-  }
-
-
-  void _checkGuidance(Position position) async {
-    for (int i = _lastGuidedIndex + 1; i < widget.route.length; i++) {
-      final userPos = LatLng(position.latitude, position.longitude);
-      bool isOnRoute = widget.route.any((point) {
-        final dist = _distance(userPos, point);
-        return dist < 25.0; // 25m 이내면 경로 위
-      });
-
-      if (!isOnRoute && !_hasDeviated) {
-        _hasDeviated = true;
-        if (!_isSpeaking) {
-          _isSpeaking = true;
-          await _flutterTts.speak("경로를 이탈했습니다. 재탐색이 필요합니다");
-          _flutterTts.setCompletionHandler(() {
-            _isSpeaking = false;
-          });
-        }
-        _recalculateRoute(position);
-      }
-      final routePos = widget.route[i];
-
-      final distanceToPoint = _distance(userPos, routePos);
-
-      if (distanceToPoint < 15.0) {
-        _lastGuidedIndex = i;
-
-        if (i < widget.route.length - 1) {
-          final current = widget.route[i];
-          final next = widget.route[i + 1];
-
-          final bearing = _distance.bearing(current, next);
-          String direction;
-
-          if (bearing > 45 && bearing < 135) {
-            direction = "오른쪽으로 이동하세요";
-          } else if (bearing > -135 && bearing < -45) {
-            direction = "왼쪽으로 이동하세요";
-          } else {
-            direction = "직진하세요";
-          }
-
-          if (!_isSpeaking) {
-            _isSpeaking = true;
-            await _flutterTts.speak(direction);
-            _flutterTts.setCompletionHandler(() {
-              _isSpeaking = false;
-            });
-          }
-        } else {
-          await _flutterTts.speak("목적지에 도착했습니다");
-          _positionStream?.cancel();
-        }
-        break;
-      }
-    }
+    await speakSafely("새로운 경로로 안내를 시작합니다.");
   }
 
   void _callProtector() async {
-    final phoneUri = Uri(scheme: 'tel', path: '010-1234-5678');
-    if (await canLaunchUrl(phoneUri)) {
-      await launchUrl(phoneUri);
-    } else {
-      print('전화 앱 실행 실패');
+    final uri = Uri(scheme: 'tel', path: '010-1234-5678');
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri);
     }
   }
 
@@ -292,7 +244,7 @@ class _PageNavigateState extends State<PageNavigate> with WidgetsBindingObserver
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.inactive || state == AppLifecycleState.paused) {
+    if (state == AppLifecycleState.paused || state == AppLifecycleState.inactive) {
       _resetBrightness();
     }
   }
@@ -307,31 +259,31 @@ class _PageNavigateState extends State<PageNavigate> with WidgetsBindingObserver
           Positioned.fill(child: CameraPreview(_cameraController!)),
 
           GlobalGoBackButtonWhite(
-            onTap: () {
-              speakTexts([
-                "길찾기로 돌아가기",
-                "화면을 터치하여 경로 안내 페이지로 이동합니다",
-                "15초간 화면 터치를 안할 시 이어서 안내합니다.",
-              ]);
+              onTap: () {
+                speakTexts([
+                  "길찾기로 돌아가기",
+                  "화면을 터치하여 경로 안내 페이지로 이동합니다",
+                  "15초간 화면 터치를 안할 시 이어서 안내합니다.",
+                ]);
 
-              showGeneralDialog(
-                context: context,
-                barrierDismissible: true,
-                barrierColor: Colors.black.withOpacity(0.3),
-                barrierLabel: MaterialLocalizations.of(context).modalBarrierDismissLabel,
-                transitionDuration: const Duration(milliseconds: 200),
-                pageBuilder: (context, animation1, animation2) {
-                  return ReturnPopup(
-                      onTap: () {
-                        Navigator.pushReplacement(
-                          context,
-                          MaterialPageRoute(builder: (_) => const UserMapPage()),
-                        );
-                      }
-                  );
-                },
-              );
-            }
+                showGeneralDialog(
+                  context: context,
+                  barrierDismissible: true,
+                  barrierColor: Colors.black.withOpacity(0.3),
+                  barrierLabel: MaterialLocalizations.of(context).modalBarrierDismissLabel,
+                  transitionDuration: const Duration(milliseconds: 200),
+                  pageBuilder: (context, animation1, animation2) {
+                    return ReturnPopup(
+                        onTap: () {
+                          Navigator.pushReplacement(
+                            context,
+                            MaterialPageRoute(builder: (_) => const UserMapPage()),
+                          );
+                        }
+                    );
+                  },
+                );
+              }
           ),
 
 

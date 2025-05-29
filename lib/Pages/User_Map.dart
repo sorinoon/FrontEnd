@@ -1,4 +1,3 @@
-// 250528 19:26
 import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
@@ -38,6 +37,8 @@ class _UserMapPageState extends State<UserMapPage> {
   bool _hasDeviated = false;
   double? _startLat;
   double? _startLon;
+  double? _endLat;
+  double? _endLon;
 
 
   Future<void> _initLocation() async {
@@ -58,7 +59,8 @@ class _UserMapPageState extends State<UserMapPage> {
     );
 
     print('✅ 초기 위치: ${current.latitude}, ${current.longitude}');
-
+    _startLat = current.latitude;
+    _startLon = current.longitude;
 
     await platform.invokeMethod('onMapReady'); // 네이티브에서 구현해도 되고 무시돼도 됨
     await Future.delayed(Duration(seconds: 2)); // ✅ 2초 정도 대기
@@ -123,15 +125,47 @@ class _UserMapPageState extends State<UserMapPage> {
     }
 
     Map<String, double>? startCoord;
-    if (_startController.text == "현위치" && _startLat != null && _startLon != null) {
-      startCoord = {
-        'lat': _startLat!,
-        'lon': _startLon!,
-      };
+    Map<String, double>? endCoord;
+
+    if (_startController.text.trim() == "현위치" || _startController.text.trim() == "현 위치") {
+      if (_startLat != null && _startLon != null) {
+        startCoord = {
+          'lat': _startLat!,
+          'lon': _startLon!,
+        };
+        print("🛰️ [경로 탐색] startLat: $_startLat, startLon: $_startLon");
+      } else {
+        print("현위치가 선택됐지만 좌표가 없음!");
+        await _speak("현재 위치 정보를 가져오지 못했습니다. 다시 시도해주세요.");
+        return;
+      }
     } else {
       startCoord = await _getCoordinates(_startController.text.trim());
+
+      if (startCoord == null) {
+        print("출발지 주소 → 좌표 변환 실패!");
+        await _speak("출발지를 찾을 수 없습니다. 다시 입력해주세요.");
+        return;
+      }
     }
-    final endCoord = await _getCoordinates(end);
+
+    if (_endController.text.trim() == "현위치" || _endController.text.trim() == "현 위치") {
+      final current = await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.high,
+      );
+      endCoord = {
+        'lat': current.latitude,
+        'lon': current.longitude,
+      };
+      print("[경로 탐색] 도착지: 현위치 (${current.latitude}, ${current.longitude})");
+    } else {
+      endCoord = await _getCoordinates(_endController.text.trim());
+      if (endCoord == null) {
+        print("도착지 주소 → 좌표 변환 실패!");
+        await _speak("도착지를 찾을 수 없습니다. 다시 입력해주세요.");
+        return;
+      }
+    }
 
     if (startCoord == null || endCoord == null) {
       await _speak("좌표 변환에 실패했습니다");
@@ -210,9 +244,8 @@ class _UserMapPageState extends State<UserMapPage> {
     super.dispose();
   }
 
-  // 현위치를 출발지로 설정하는 과정에서 오류 !!!!!!!!!!!!
   /*void updateInputField(String field, String value) async {
-    if (field.contains("현위치")||field.contains("현 위치")) {
+    if (value.contains("현위치")) {
       try {
         final current = await Geolocator.getCurrentPosition(
           desiredAccuracy: LocationAccuracy.high,
@@ -357,7 +390,7 @@ class _UserMapPageState extends State<UserMapPage> {
                                 ),
                               ),
                               child: Text(
-                                _routeTimeText == null ? '경로 탐색' : '안내 시작',
+                                _routeTimeText?.contains('도보 예상 시간') == true ? '안내 시작' : '경로 탐색',
                                 style: const TextStyle(
                                   fontSize: 20,
                                   color: Colors.black,
@@ -389,7 +422,13 @@ class _UserMapPageState extends State<UserMapPage> {
               },
             ),
           ),
-          GlobalGoBackButton(targetPage: UserHomeScreen()),
+
+          GlobalGoBackButton(
+            currentPageName: 'UserMapPage',
+              targetPage: UserHomeScreen()
+          ),
+
+
           if (!isKeyboardVisible) TmapMicButton(
             onPressed: () {},
             customCommandHandler: (command, tts, context) async {

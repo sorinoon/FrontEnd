@@ -1,4 +1,6 @@
 package com.example.sorinoon
+import android.os.Handler
+import android.os.Looper
 
 import android.os.Bundle
 import io.flutter.embedding.android.FlutterActivity
@@ -47,6 +49,16 @@ class MainActivity : FlutterActivity() {
                         result.error("INVALID_ARGUMENTS", "위도/경도 누락됨", null)
                     }
                 }
+
+                "reloadMap" -> {
+                    Handler(Looper.getMainLooper()).post {
+                        // 기존 tMapViewInstance 제거 및 새 인스턴스 생성
+                        tMapViewInstance = TMapNativeView(this, methodChannel)
+                        // 필요하면 Flutter 쪽에도 새로고침 시그널 보내기
+                    }
+                    result.success(null)
+                }
+
                 "onMapReady" -> {
                     // Flutter에서 호출할 때 대비용 (실제 동작 안 해도 됨)
                     result.success("ok")
