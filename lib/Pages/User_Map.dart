@@ -391,6 +391,7 @@ class _UserMapPageState extends State<UserMapPage> {
                               ),
                               child: Text(
                                 _routeTimeText?.contains('도보 예상 시간') == true ? '안내 시작' : '경로 탐색',
+                                //_routeTimeText == null ? '안내 시작' : '경로 탐색',
                                 style: const TextStyle(
                                   fontSize: 20,
                                   color: Colors.black,

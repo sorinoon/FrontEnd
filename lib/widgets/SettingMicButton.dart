@@ -6,6 +6,8 @@ import 'package:provider/provider.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
 import 'package:lottie/lottie.dart';
 import '../Pages/User_SettingsProvider.dart';
+import '../Pages/User_NOKConnect.dart';
+import '../Pages/User_NOKList.dart';
 
 class SettingMicButton extends StatefulWidget {
   final VoidCallback onPressed;
@@ -61,6 +63,15 @@ class _SettingMicButtonState extends State<SettingMicButton> {
     );
   }
 
+  Future<void> navigate(Widget page, String message) async {
+    if (!mounted) return;
+    await _speak(message);
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (_) => page),
+    );
+  }
+
   Future<void> _processCommand(String command) async {
     final settings = Provider.of<UserSettingsProvider>(context, listen: false);
 
@@ -76,10 +87,14 @@ class _SettingMicButtonState extends State<SettingMicButton> {
     } else if (command.contains('뒤로') || command.contains('이전')) {
       await _speak("이전 페이지로 이동할게요");
       if (mounted) Navigator.pop(context);
+    } else if (command.contains('등록')) {
+      await navigate(NOKConnectScreen(), "보호자 등록 페이지로 이동할게요");
+    } else if (command.contains('목록')) {
+      await navigate(ProtectorListScreen(), "보호자 목록 페이지로 이동할게요");
     } else if (command.contains("소리 눈") || command.contains("소리눈") || command.contains("우리는")) {
       await _speak("이 페이지는 진동 모드, 저전력 모드, 글자 크기 설정이 가능합니다. 각 기능명을 말하면 토글할 수 있습니다.");
     } else if (command.contains("명령어")) {
-      await _speak("사용 가능한 명령어는 진동 모드, 저전력 모드, 글자 크기 키우기, 소리눈, 명령어 입니다.");
+      await _speak("사용 가능한 명령어는 진동 모드, 저전력 모드, 글자 크기 키우기, 등록, 목록, 소리눈, 명령어 입니다.");
     } else {
       await _speak("죄송해요. 무슨 말인지 이해하지 못했어요.");
     }

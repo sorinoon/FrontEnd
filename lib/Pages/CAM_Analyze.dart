@@ -77,7 +77,7 @@ class CameraAnalyzeState extends State<CameraAnalyzeScreen> {
         return;
       }
 
-      final uri = Uri.parse('http://192.168.45.250:8000/ocr-summary/');
+      final uri = Uri.parse('http://192.168.0.72:8000/ocr-summary/');
       final request = http.MultipartRequest('POST', uri);
 
       request.fields['mode'] = mode.toString(); // 모드 추가 (0 또는 1)
@@ -123,7 +123,7 @@ class CameraAnalyzeState extends State<CameraAnalyzeScreen> {
           children: [
             MobileScanner(
               controller: controller,
-              onDetect: (capture) async {
+              /*onDetect: (capture) async {
                 final List<Barcode> barcodes = capture.barcodes;
                 if (!_isProcessing && barcodes.isNotEmpty) {
                   _isProcessing = true;
@@ -135,24 +135,45 @@ class CameraAnalyzeState extends State<CameraAnalyzeScreen> {
                   _isProcessing = false;
                   controller.start();
                 }
+              },*/
+              onDetect: (capture) async {
+                if (_isProcessing) return;
+
+                final List<Barcode> barcodes = capture.barcodes;
+                if (barcodes.isEmpty) return;
+
+                setState(() {
+                  _isProcessing = true;
+                });
+
+                final barcodeValue = barcodes.first.rawValue ?? 'Unknown';
+                debugPrint('Detected: $barcodeValue');
+
+                // 바코드 처리 로직
+                await Future.delayed(Duration(seconds: 2)); // 테스트용
+
+                setState(() {
+                  _isProcessing = false;
+                });
               },
+
             ),
 
             GlobalGoBackButtonWhite(targetPage: UserHomeScreen()),
 
             Positioned(
-              top: 43,
+              top: 50,
               left: 0,
               right: 0,
               child: Center(
                 child: Container(
-                  padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  padding: EdgeInsets.symmetric(horizontal: 16, vertical: 1),
                   decoration: BoxDecoration(
                     color: Colors.yellow,
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Text(
-                    '인식 모드',
+                    '',
                     style: TextStyle(
                       fontSize: 20,
                       color: Colors.black,

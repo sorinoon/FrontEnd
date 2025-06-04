@@ -29,6 +29,7 @@ class PageNavigate extends StatefulWidget {
 final FlutterTts flutterTts = FlutterTts();
 
 Future<void> speakTexts(List<String> texts) async {
+  await flutterTts.stop();
   for (var text in texts) {
     await flutterTts.speak(text);
     // 완료 대기
@@ -110,7 +111,7 @@ class _PageNavigateState extends State<PageNavigate> with WidgetsBindingObserver
     _flutterTts.setSpeechRate(0.5);
 
     _channel = WebSocketChannel.connect(
-      Uri.parse('ws://192.168.45.250:8000/ws/detect/'),
+      Uri.parse('ws://192.168.0.72:8000/ws/detect/'),
     );
 
     _channel!.stream.listen((message) async {
@@ -224,7 +225,7 @@ class _PageNavigateState extends State<PageNavigate> with WidgetsBindingObserver
   }
 
   void _callProtector() async {
-    final uri = Uri(scheme: 'tel', path: '010-1234-5678');
+    final uri = Uri(scheme: 'tel', path: '010-2098-6404');
     if (await canLaunchUrl(uri)) {
       await launchUrl(uri);
     }
@@ -239,6 +240,7 @@ class _PageNavigateState extends State<PageNavigate> with WidgetsBindingObserver
     _sendTimer?.cancel();
     _flutterTts.stop();
     _positionStream?.cancel();
+    _flutterTts.stop();
     super.dispose();
   }
 
@@ -274,7 +276,8 @@ class _PageNavigateState extends State<PageNavigate> with WidgetsBindingObserver
                   transitionDuration: const Duration(milliseconds: 200),
                   pageBuilder: (context, animation1, animation2) {
                     return ReturnPopup(
-                        onTap: () {
+                        onTap: () async {
+                          await flutterTts.stop();
                           Navigator.pushReplacement(
                             context,
                             MaterialPageRoute(builder: (_) => const UserMapPage()),
